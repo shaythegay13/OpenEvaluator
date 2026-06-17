@@ -1,0 +1,40 @@
+{
+  "map_num": "26",
+  "lot_num": "18",
+  "town": "Turner",
+  "property_boundary": null,
+  "road_information": {
+    "lookup_url": "https://jeodonnell.com/cama/turner/?map=26&lot=18",
+    "source": "O'Donnell CAMA or deed records"
+  },
+  "lot_dimensions": {
+    "source": "O'Donnell CAMA",
+    "requires_web_access": true
+  },
+  "ownership": {
+    "lookup_url": "https://jeodonnell.com/cama/turner/?map=26&lot=18",
+    "manual_lookup_required": true
+  },
+  "tax_data": {
+    "source": "O'Donnell CAMA",
+    "requires_web_access": true
+  },
+  "septic_history": [
+    {
+      "system_type": "Information available through Maine DHHS database",
+      "installed_date": "Query required",
+      "installer": "Query required",
+      "designflow": "Query required",
+      "source": "Maine DHHS Septic Plan Records",
+      "requires_web_access": true
+    }
+  ],
+  "sources": [
+    "John E. O'Donnell CAMA System (Turner Assessor)",
+    "Maine DHHS Septic Plan Records",
+    "Androscoggin Registry of Deeds (metadata)"
+  ],
+  "errors": [
+    "Could not retrieve parcel boundary from Maine GeoLibrary"
+  ]
+}

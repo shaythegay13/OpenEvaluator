@@ -1,0 +1,54 @@
+{
+  "ROAD_BAND": {
+    "example_size": [
+      1172,
+      662
+    ],
+    "current_size": [
+      1275,
+      1650
+    ],
+    "scale_factor": 0.36880047534165183,
+    "width_ratio": 0.9192156862745098,
+    "height_ratio": 0.4012121212121212
+  },
+  "HOUSE": {
+    "example_size": [
+      1172,
+      662
+    ],
+    "current_size": [
+      381,
+      197
+    ],
+    "scale_factor": 10.33699721544959,
+    "width_ratio": 3.0761154855643045,
+    "height_ratio": 3.3604060913705585
+  },
+  "TANK": {
+    "example_size": [
+      1171,
+      113
+    ],
+    "current_size": [
+      1275,
+      1650
+    ],
+    "scale_factor": 0.06289863339275104,
+    "width_ratio": 0.9184313725490196,
+    "height_ratio": 0.06848484848484848
+  },
+  "FIELD": {
+    "example_size": [
+      568,
+      505
+    ],
+    "current_size": [
+      1275,
+      1650
+    ],
+    "scale_factor": 0.13634699940582293,
+    "width_ratio": 0.4454901960784314,
+    "height_ratio": 0.30606060606060603
+  }
+}

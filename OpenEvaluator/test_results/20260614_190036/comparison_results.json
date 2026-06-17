@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-06-14T19:01:23.357313",
+  "comparisons": [
+    {
+      "row": 2,
+      "name": "26-018 (Kristen Marquis)",
+      "example_folder": "example 1",
+      "score": {
+        "generated_pdf": "test_results/20260614_190036/row_2/HHE-200-row2.pdf",
+        "example_pdfs": [
+          "example/example 1/26-018 PG1 (1).pdf",
+          "example/example 1/26-018 PG2 (1).pdf",
+          "example/example 1/26-018 PG3 (1).pdf",
+          "example/example 1/26-018 PG4 (1).pdf"
+        ],
+        "pages": {},
+        "example_pdfs_info": [
+          {
+            "path": "example/example 1/26-018 PG1 (1).pdf",
+            "pages": 1,
+            "size": "614439 bytes"
+          },
+          {
+            "path": "example/example 1/26-018 PG2 (1).pdf",
+            "pages": 1,
+            "size": "261550 bytes"
+          },
+          {
+            "path": "example/example 1/26-018 PG3 (1).pdf",
+            "pages": 1,
+            "size": "290274 bytes"
+          },
+          {
+            "path": "example/example 1/26-018 PG4 (1).pdf",
+            "pages": 1,
+            "size": "259488 bytes"
+          }
+        ]
+      }
+    },
+    {
+      "row": 4,
+      "name": "26-123",
+      "example_folder": "example 2",
+      "score": {
+        "generated_pdf": "test_results/20260614_190036/row_4/HHE-200-row4.pdf",
+        "example_pdfs": [
+          "example/example 2/26-123 PG1.pdf",
+          "example/example 2/26-123 PG2.pdf",
+          "example/example 2/26-123 PG3.pdf",
+          "example/example 2/26-123 PG4.pdf"
+        ],
+        "pages": {},
+        "example_pdfs_info": [
+          {
+            "path": "example/example 2/26-123 PG1.pdf",
+            "pages": 1,
+            "size": "611380 bytes"
+          },
+          {
+            "path": "example/example 2/26-123 PG2.pdf",
+            "pages": 1,
+            "size": "265220 bytes"
+          },
+          {
+            "path": "example/example 2/26-123 PG3.pdf",
+            "pages": 1,
+            "size": "291225 bytes"
+          },
+          {
+            "path": "example/example 2/26-123 PG4.pdf",
+            "pages": 1,
+            "size": "250015 bytes"
+          }
+        ]
+      }
+    }
+  ]
+}

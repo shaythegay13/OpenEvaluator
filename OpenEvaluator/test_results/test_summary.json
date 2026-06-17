@@ -1,0 +1,120 @@
+{
+  "timestamp": "2026-06-15T11:32:17.278707",
+  "total_rows": 4,
+  "completed": 4,
+  "successful": 4,
+  "test_results": [
+    {
+      "row": 2,
+      "property": "26-018",
+      "example_folder": "example 1",
+      "extraction_status": "success",
+      "form_status": "success",
+      "outputs": [
+        "HHE-200-row2.pdf",
+        "row2_preview_pg3_small.png",
+        "row2_disposal_plan_pg4.png",
+        "row2_hhe200_pg3_blank.png",
+        "row2_preview_pg3.png",
+        "row2_example_pg3.png",
+        "row2_current_pg3.png",
+        "row2_cross_section_pg4.png",
+        "row2_hhe200_pg4_blank.png",
+        "row2_current_pg4.png",
+        "row2_pg4_example_crop.png",
+        "row2_pg4_current.png",
+        "row2_example_pg4.png",
+        "row2_site_plan_pg3.png"
+      ],
+      "comparison": {
+        "example_folder": "example 1",
+        "example_pdfs": [
+          "26-018 PG1 (1).pdf",
+          "26-018 PG2 (1).pdf",
+          "26-018 PG3 (1).pdf",
+          "26-018 PG4 (1).pdf"
+        ],
+        "status": "ready_for_comparison"
+      }
+    },
+    {
+      "row": 3,
+      "property": "Synthetic Test 1",
+      "example_folder": null,
+      "extraction_status": "success",
+      "form_status": "success",
+      "outputs": [
+        "HHE-200-row3.pdf",
+        "row3_preview_pg3_small.png",
+        "row3_disposal_plan_pg4.png",
+        "row3_hhe200_pg3_blank.png",
+        "row3_preview_pg3.png",
+        "row3_example_pg3.png",
+        "row3_current_pg3.png",
+        "row3_cross_section_pg4.png",
+        "row3_hhe200_pg4_blank.png",
+        "row3_current_pg4.png",
+        "row3_pg4_example_crop.png",
+        "row3_pg4_current.png",
+        "row3_example_pg4.png",
+        "row3_site_plan_pg3.png"
+      ]
+    },
+    {
+      "row": 4,
+      "property": "26-123",
+      "example_folder": "example 2",
+      "extraction_status": "success",
+      "form_status": "success",
+      "outputs": [
+        "HHE-200-row4.pdf",
+        "row4_preview_pg3_small.png",
+        "row4_disposal_plan_pg4.png",
+        "row4_hhe200_pg3_blank.png",
+        "row4_preview_pg3.png",
+        "row4_example_pg3.png",
+        "row4_current_pg3.png",
+        "row4_cross_section_pg4.png",
+        "row4_hhe200_pg4_blank.png",
+        "row4_current_pg4.png",
+        "row4_pg4_example_crop.png",
+        "row4_pg4_current.png",
+        "row4_example_pg4.png",
+        "row4_site_plan_pg3.png"
+      ],
+      "comparison": {
+        "example_folder": "example 2",
+        "example_pdfs": [
+          "26-123 PG1.pdf",
+          "26-123 PG2.pdf",
+          "26-123 PG3.pdf",
+          "26-123 PG4.pdf"
+        ],
+        "status": "ready_for_comparison"
+      }
+    },
+    {
+      "row": 5,
+      "property": "Synthetic Test 2",
+      "example_folder": null,
+      "extraction_status": "success",
+      "form_status": "success",
+      "outputs": [
+        "HHE-200-row5.pdf",
+        "row5_preview_pg3_small.png",
+        "row5_disposal_plan_pg4.png",
+        "row5_hhe200_pg3_blank.png",
+        "row5_preview_pg3.png",
+        "row5_example_pg3.png",
+        "row5_current_pg3.png",
+        "row5_cross_section_pg4.png",
+        "row5_hhe200_pg4_blank.png",
+        "row5_current_pg4.png",
+        "row5_pg4_example_crop.png",
+        "row5_pg4_current.png",
+        "row5_example_pg4.png",
+        "row5_site_plan_pg3.png"
+      ]
+    }
+  ]
+}

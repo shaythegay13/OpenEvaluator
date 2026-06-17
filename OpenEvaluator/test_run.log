@@ -1,0 +1,121 @@
+
+================================================================================
+HHE-200 COMPREHENSIVE TEST SUITE
+Started: 2026-06-14 20:31:31
+================================================================================
+Attempting to read Google Sheet...
+
+⚠ Could not read Google Sheet, using predefined test cases
+
+================================================================================
+ROW 2: 26-018
+================================================================================
+
+1. Extracting sketch data from Google Drive...
+   Folder ID: test2...
+   ✓ Sketch extraction successful
+   ✓ Data prepared for form generation
+
+2. Preparing form fields from Google Sheet data...
+Attempting to read Google Sheet...
+   Using pre-defined test data for row 2...
+   ✓ Using Kristen Marquis (26-018) test data
+   ✓ Parsed 99 fields for row 2
+   ✓ Saved form fields to sheet_row_data.json
+
+3. Generating HHE-200 form...
+   ✓ Form generated successfully
+   ✓ PDF saved: HHE-200-row2.pdf
+
+4. Comparing with example folder 'example 1'...
+   Found 4 example PDFs:
+     - 26-018 PG1 (1).pdf
+     - 26-018 PG2 (1).pdf
+     - 26-018 PG3 (1).pdf
+     - 26-018 PG4 (1).pdf
+   ✓ Comparison data prepared
+
+================================================================================
+ROW 3: Synthetic Test 1
+================================================================================
+
+1. Extracting sketch data from Google Drive...
+   Folder ID: test3...
+   ✓ Sketch extraction successful
+   ✓ Data prepared for form generation
+
+2. Preparing form fields from Google Sheet data...
+Attempting to read Google Sheet...
+   Using pre-defined test data for row 3...
+   ✓ Using synthetic test data for row 3
+   ✓ Parsed 99 fields for row 3
+   ✓ Saved form fields to sheet_row_data.json
+
+3. Generating HHE-200 form...
+   ✓ Form generated successfully
+   ✓ PDF saved: HHE-200-row3.pdf
+
+================================================================================
+ROW 4: 26-123
+================================================================================
+
+1. Extracting sketch data from Google Drive...
+   Folder ID: test4...
+   ✓ Sketch extraction successful
+   ✓ Data prepared for form generation
+
+2. Preparing form fields from Google Sheet data...
+Attempting to read Google Sheet...
+   Using pre-defined test data for row 4...
+   ✓ Using synthetic test data for row 4
+   ✓ Parsed 99 fields for row 4
+   ✓ Saved form fields to sheet_row_data.json
+
+3. Generating HHE-200 form...
+   ✓ Form generated successfully
+   ✓ PDF saved: HHE-200-row4.pdf
+
+4. Comparing with example folder 'example 2'...
+   Found 4 example PDFs:
+     - 26-123 PG1.pdf
+     - 26-123 PG2.pdf
+     - 26-123 PG3.pdf
+     - 26-123 PG4.pdf
+   ✓ Comparison data prepared
+
+================================================================================
+ROW 5: Synthetic Test 2
+================================================================================
+
+1. Extracting sketch data from Google Drive...
+   Folder ID: test5...
+   ✓ Sketch extraction successful
+   ✓ Data prepared for form generation
+
+2. Preparing form fields from Google Sheet data...
+Attempting to read Google Sheet...
+   Using pre-defined test data for row 5...
+   ✓ Using synthetic test data for row 5
+   ✓ Parsed 99 fields for row 5
+   ✓ Saved form fields to sheet_row_data.json
+
+3. Generating HHE-200 form...
+   ✓ Form generated successfully
+   ✓ PDF saved: HHE-200-row5.pdf
+
+================================================================================
+TEST SUITE SUMMARY
+================================================================================
+Total rows processed: 4/4
+Successful generations: 4/4
+Results location: test_results
+
+Generated outputs:
+  ✓ Row 2: 26-018
+  ✓ Row 3: Synthetic Test 1
+  ✓ Row 4: 26-123
+  ✓ Row 5: Synthetic Test 2
+
+Results saved: test_results/test_summary.json
+================================================================================
+

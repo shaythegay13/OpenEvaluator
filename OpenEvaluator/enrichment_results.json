@@ -1,0 +1,55 @@
+{
+  "status": "found",
+  "map": "26",
+  "lot": "18",
+  "town": "Turner",
+  "property_data": {
+    "map": "26",
+    "lot": "18",
+    "address": "17 Aspen Way",
+    "town": "Turner",
+    "state": "ME",
+    "zip": "04282",
+    "owner": "George Bouchles",
+    "owner_address": "17 Aspen Way, Turner, ME 04282",
+    "acreage": 2.35,
+    "lot_dimensions": {
+      "frontage_ft": 105,
+      "depth_ft": 966,
+      "area_acres": 2.35
+    },
+    "road_name": "Aspen Way",
+    "road_type": "Private",
+    "road_frontage_ft": 105,
+    "property_description": "Residential property, 2+ acre lot",
+    "zoning": "Residential",
+    "tax_class": "Residential",
+    "assessed_value": null,
+    "existing_structures": [
+      {
+        "type": "Dwelling",
+        "stories": 2,
+        "approx_size_sqft": 2000
+      },
+      {
+        "type": "Garage",
+        "approx_size_sqft": 600
+      }
+    ],
+    "septic_system": {
+      "type": "Eljen-in Drain",
+      "design_flow_gpd": 270,
+      "modules": 21,
+      "installation_date": null
+    },
+    "sources": [
+      "Form submission (George Bouchles field evaluation)"
+    ],
+    "research_date": "2026-06-01",
+    "confidence": "high"
+  },
+  "source": "Property Database",
+  "confidence": "high",
+  "used_for_drawings": true,
+  "errors": []
+}

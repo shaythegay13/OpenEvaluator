@@ -1,0 +1,70 @@
+{
+  "ROAD_BAND": {
+    "example_fill_ratio": 0.23169775227164036,
+    "current_fill_ratio": 0.052989000478240074,
+    "difference": -0.1787087517934003,
+    "example_bounds": [
+      0,
+      247,
+      1275,
+      82
+    ],
+    "current_bounds": [
+      0,
+      247,
+      1275,
+      82
+    ]
+  },
+  "HOUSE": {
+    "example_fill_ratio": 0.21867534183906878,
+    "current_fill_ratio": 0.09118461851268235,
+    "difference": -0.12749072332638645,
+    "example_bounds": [
+      191,
+      330,
+      382,
+      412
+    ],
+    "current_bounds": [
+      191,
+      330,
+      382,
+      412
+    ]
+  },
+  "TANK": {
+    "example_fill_ratio": 0.27969170944949934,
+    "current_fill_ratio": 0.07516647181416154,
+    "difference": -0.2045252376353378,
+    "example_bounds": [
+      765,
+      412,
+      382,
+      412
+    ],
+    "current_bounds": [
+      765,
+      412,
+      382,
+      412
+    ]
+  },
+  "FIELD": {
+    "example_fill_ratio": 0.19619132501485442,
+    "current_fill_ratio": 0.3795870469399881,
+    "difference": 0.1833957219251337,
+    "example_bounds": [
+      127,
+      825,
+      1020,
+      660
+    ],
+    "current_bounds": [
+      127,
+      825,
+      1020,
+      660
+    ]
+  }
+}

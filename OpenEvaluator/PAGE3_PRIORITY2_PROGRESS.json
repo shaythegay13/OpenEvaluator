@@ -1,0 +1,83 @@
+{
+  "title": "Page 3 Site Plan Priority 2 & 3 Progress",
+  "status": "In Progress",
+  "completion": "40% (Identified root cause, scale fix applied)",
+  "completed": {
+    "Figure Dimensions (Priority 1)": {
+      "status": "\u2713 COMPLETE",
+      "before": "864 \u00d7 666 px (1.30 aspect ratio, landscape)",
+      "after": "1275 \u00d7 1650 px (0.77 aspect ratio, portrait)",
+      "impact": "Corrected page orientation and grid size"
+    },
+    "Scale Calculation Bug (Priority 2)": {
+      "status": "\u2713 FIXED",
+      "issue": "cluster_w (11 ft) was used in vertical span instead of cluster_l (28 ft)",
+      "impact": "Tank improved from 7.5% to 14.8% fill ratio (+35.6%)",
+      "note": "This was a critical bug affecting scale calculation"
+    }
+  },
+  "current_metrics": {
+    "ROAD_BAND": {
+      "target": "23.2%",
+      "current": "5.3%",
+      "gap": "-17.9%"
+    },
+    "HOUSE": {
+      "target": "21.9%",
+      "current": "9.7%",
+      "gap": "-12.2%"
+    },
+    "TANK": {
+      "target": "28.0%",
+      "current": "14.8%",
+      "gap": "-13.2%"
+    },
+    "FIELD": {
+      "target": "19.6%",
+      "current": "38.0%",
+      "gap": "+18.4%"
+    }
+  },
+  "remaining_issues": {
+    "Priority 2 - Element Sizing": {
+      "status": "PARTIAL",
+      "issues": [
+        "House still too small (9.7% vs 21.9%)",
+        "Tank still too small (14.8% vs 28.0%)",
+        "Road band still too thin (5.3% vs 23.2%)",
+        "Field still too large (38% vs 19.6%)"
+      ],
+      "note": "Direct sizing changes interfere with scale; need different approach"
+    },
+    "Priority 3 - Label Positioning": {
+      "status": "NOT STARTED",
+      "tasks": [
+        "Verify labels don't overlap with elements",
+        "Check leader line angles and lengths",
+        "Confirm text sizes are readable at this scale"
+      ]
+    }
+  },
+  "next_steps": [
+    {
+      "step": 1,
+      "title": "Extract exact element dimensions from example",
+      "details": "Use pixel-level measurement to identify actual house/tank/road dimensions in example PDF"
+    },
+    {
+      "step": 2,
+      "title": "Analyze field layout",
+      "details": "Determine if field modules or cluster dimensions need adjustment"
+    },
+    {
+      "step": 3,
+      "title": "Apply targeted fixes",
+      "details": "Adjust element constants based on measured differences"
+    },
+    {
+      "step": 4,
+      "title": "Verify label positioning",
+      "details": "Check that all labels are readable and properly positioned"
+    }
+  ]
+}

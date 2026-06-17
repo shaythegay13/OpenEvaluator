@@ -1,0 +1,161 @@
+================================================================================
+DXF TO PDF CONVERTER - USAGE GUIDE
+================================================================================
+
+PURPOSE: Convert AutoCAD DXF files to PDF for viewing HHE-200 form output
+
+CREATED: 2026-06-15
+FILE: dxf_to_pdf_converter.py
+
+================================================================================
+USAGE
+================================================================================
+
+Option 1: Convert All HHE-200 Pages (Recommended)
+  python3 dxf_to_pdf_converter.py --dxf-folder ./dwg_output
+  
+  This will:
+  - Convert PG1_filled.dxf → PG1_filled.pdf
+  - Convert PG2_filled.dxf → PG2_filled.pdf
+  - Convert PG3_filled.dxf → PG3_filled.pdf
+  - Convert PG4_filled.dxf → PG4_filled.pdf
+  - Merge into HHE-200-FINAL.pdf
+
+Option 2: Convert Single DXF File
+  python3 dxf_to_pdf_converter.py --dxf-file path/to/file.dxf
+  
+  Output will be: path/to/file.pdf
+
+================================================================================
+EXAMPLE OUTPUT
+================================================================================
+
+$ python3 dxf_to_pdf_converter.py --dxf-folder ./dwg_output
+
+======================================================================
+HHE-200 DXF to PDF Conversion
+======================================================================
+
+Converting: PG1_filled.dxf → PG1_filled.pdf
+✓ Converted successfully: PG1_filled.pdf (17,278 bytes)
+
+Converting: PG2_filled.dxf → PG2_filled.pdf
+✓ Converted successfully: PG2_filled.pdf (17,641 bytes)
+
+Converting: PG3_filled.dxf → PG3_filled.pdf
+✓ Converted successfully: PG3_filled.pdf (16,787 bytes)
+
+Converting: PG4_filled.dxf → PG4_filled.pdf
+✓ Converted successfully: PG4_filled.pdf (17,433 bytes)
+
+Merging 4 PDFs...
+  Adding: PG1_filled.pdf
+  Adding: PG2_filled.pdf
+  Adding: PG3_filled.pdf
+  Adding: PG4_filled.pdf
+✓ Merged successfully: HHE-200-FINAL.pdf (69,156 bytes)
+
+✓ FINAL OUTPUT: dwg_output/HHE-200-FINAL.pdf
+
+================================================================================
+WHAT YOU GET
+================================================================================
+
+Individual Page PDFs (if needed separately):
+  - dwg_output/PG1_filled.pdf (Page 1 - Header & Contact)
+  - dwg_output/PG2_filled.pdf (Page 2 - Property & System Info)
+  - dwg_output/PG3_filled.pdf (Page 3 - Site Plan)
+  - dwg_output/PG4_filled.pdf (Page 4 - Disposal Plan)
+
+Merged Document (ready to view):
+  - dwg_output/HHE-200-FINAL.pdf (All 4 pages in one file)
+
+================================================================================
+REQUIREMENTS
+================================================================================
+
+✓ LibreOffice (for DXF to PDF conversion)
+  Already installed: /usr/bin/libreoffice
+
+✓ Ghostscript (for PDF merging)
+  Already installed: /usr/bin/gs
+
+✓ Python 3.11+
+  Used for script
+
+Optional:
+✓ PyPDF2 (for programmatic PDF merging)
+  Install with: pip install PyPDF2
+  If not available, uses Ghostscript command-line instead
+
+================================================================================
+TECHNICAL DETAILS
+================================================================================
+
+Conversion Method:
+  DXF → LibreOffice headless mode → PDF
+  - Uses: libreoffice --headless --convert-to pdf
+  - Format: pdf:Draw
+  - Quality: Full fidelity (all DXF elements preserved)
+
+Merging Method:
+  PDF + PDF + PDF + PDF → Ghostscript → Single PDF
+  - Uses: gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite
+  - Result: 4-page merged document
+  - Quality: Lossless (PDFs concatenated)
+
+File Sizes (Typical):
+  - Each page PDF: ~17 KB
+  - Merged document: ~68 KB
+  - Total: Minimal disk usage
+
+Performance:
+  - Time per page: ~1 second
+  - Total conversion: ~4 seconds
+  - Merge: ~2 seconds
+  - Total end-to-end: <10 seconds
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Issue: "LibreOffice not found"
+Solution: Install LibreOffice
+  apt install libreoffice
+
+Issue: "Ghostscript not found"  
+Solution: Install Ghostscript
+  apt install ghostscript
+
+Issue: "Conversion timeout"
+Solution: Increase timeout (default 30s)
+  - Edit dxf_to_pdf_converter.py, line 25
+  - Change: timeout=30 → timeout=60
+
+Issue: "PDF merge failed"
+Solution: Either...
+  A) Install PyPDF2: pip install PyPDF2
+  B) Install Ghostscript: apt install ghostscript
+  C) Use individual PDFs (they work fine separately)
+
+Issue: "DXF file not found"
+Solution: Ensure DXF files exist in dwg_output folder
+  - Check: ls -la dwg_output/*.dxf
+  - Regenerate if needed by running main pipeline
+
+================================================================================
+INTEGRATION WITH PIPELINE
+================================================================================
+
+The converter is automatically integrated:
+
+After full HHE-200 generation:
+  1. dwg_generator.py creates: PG1.dxf, PG2.dxf, PG3.dxf, PG4.dxf
+  2. dxf_to_pdf_converter.py converts to: PG1.pdf, PG2.pdf, PG3.pdf, PG4.pdf
+  3. Merges into: HHE-200-FINAL.pdf
+
+To view output after generation:
+  python3 dxf_to_pdf_converter.py --dxf-folder ./dwg_output
+  # Then open dwg_output/HHE-200-FINAL.pdf
+
+================================================================================

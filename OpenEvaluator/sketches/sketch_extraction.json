@@ -1,0 +1,48 @@
+{
+  "_meta": {
+    "title": "Hand-drawn field sketch extraction — George Bouchles (26-018)",
+    "description": "Structured data extracted only from legible annotations on sketch_for_claude.jpg. Illegible or unlabeled values left null to avoid hallucination.",
+    "created": "2026-06-15",
+    "updated": "2026-06-15",
+    "source_image": "OpenEvaluator/sketches/sketch_for_claude.jpg",
+    "sketch_date_written": "3-23-29"
+  },
+  "soil_observations": {
+    "depth_measurements": [21],
+    "soil_colors": [],
+    "soil_textures": [],
+    "limiting_factors": []
+  },
+  "elevation_data": {
+    "erp_description": null,
+    "erp_height_inches": null,
+    "finished_grade": null,
+    "top_of_pipe": null,
+    "bottom_field": null
+  },
+  "field_layout": {
+    "num_rows": null,
+    "modules_per_row": null,
+    "total_modules": null,
+    "cluster_dimensions": null,
+    "module_type": null
+  },
+  "distances": {
+    "house_to_tank_ft": null,
+    "tank_to_field_ft": null,
+    "field_to_well_ft": null
+  },
+  "observations": [
+    "Date written on sketch: 3-23-29.",
+    "Structures labeled: 'House' (center), 'GAR' (garage, right, underlined), and a drilled well top-right labeled '23' + well symbol + 'DRILLED'.",
+    "Well offsets dimensioned off the garage/property corner: '23' (horizontal leg) and '30.5' (vertical leg). No explicit 'field-to-well' distance is labeled.",
+    "Circled '21\"' inside the disposal field — clearly inch-marked, read as a 21-inch depth (likely depth to limiting factor); placed in depth_measurements.",
+    "Disposal-field polygon dimensions (feet, unlabeled as to type): 28.5, 30' (with a '(4)' note), 16.5, 27, 17, 51.5, 78, and 11.",
+    "A '55' annotation with '9' over '2.5' (reads like 55 and a 9/2.5 ratio) at the field's left side — unit/meaning not stated.",
+    "Two small boxes inside the field marked 'T' (test pits) and additional small boxes/marks ('B'/'D'); a partially legible curved label near center (~'EAR') could not be read confidently.",
+    "Module/fill label near the field reads approximately 'MP 20' with hatching — could not confirm a brand/model, so module_type left null.",
+    "Separate small box at upper-left (outside the field) annotated '21.5', '21', and '3 1/4' — appears to be a soil/test-pit profile note, but units (depth vs. dimension) are not stated, so not assigned to depth_measurements.",
+    "Lower-left detail box (the apparent elevation/benchmark reference) shows pencil numbers ('25'?, '9', '0') and a red note '+6\"' with a red arrow. No ERP description text is legible, so all elevation_data fields left null; the '+6\"' is noted here only.",
+    "No soil colors, soil textures, or named limiting factors (e.g., ledge, water table, mottling) are written legibly anywhere on the sketch."
+  ]
+}

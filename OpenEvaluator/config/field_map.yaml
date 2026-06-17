@@ -1,0 +1,194 @@
+---
+title: HHE-200 Field Map
+description: Complete coordinate mapping for all 73 selection/option/radio fields on the HHE-200 Subsurface Wastewater Disposal Application form
+created: 2026-05-05
+updated: 2026-05-05
+---
+
+# HHE-200 Field Map — Selection/Option/Radio Fields
+
+All coordinates are in drawing units (inches). Fields are organized by page and group.
+
+---
+
+## PAGE 1
+
+### Disposal System Type (12 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. Complete Non-Engineered System | 16.517 | 9.055 |
+| 2. Primitive/Limited System (Greywater + Alternative Toilet) | 16.526 | 8.702 |
+| 3. Alternative Toilet | 16.526 | 8.343 |
+| 4. Non-Engineered Treatment Tanks(s) | 16.526 | 7.984 |
+| 5. Holding Tank | 16.526 | 7.629 |
+| 6. Non-Engineered Disposal Field | 16.526 | 7.457 |
+| 7. Complete Engineered System | 16.526 | 7.281 |
+| 8. Engineered Tank(s) Only | 16.526 | 6.926 |
+| 9. Engineered Field(s) Only | 16.526 | 6.742 |
+| 10. Engineered Field(s) Only | 16.526 | 6.552 |
+| 11. Pre-Treatment Tank | 16.526 | 6.381 |
+| 12. Pre-Treatment Component | 16.526 | 6.198 |
+
+### Treatment Tank Material (4 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. Concrete | 12.398 | 7.261 |
+| 2. Plastic | 12.362 | 7.088 |
+| 3. External Grease Interceptor | 12.365 | 6.903 |
+| 4. Other | 12.378 | 6.724 |
+
+### Tank Profile (3 radio options)
+| Option | x | y |
+|--------|---|---|
+| Regular | 13.715 | 7.261 |
+| Low Profile | 14.546 | 7.261 |
+| H-20 | 15.507 | 7.261 |
+
+### Application Type (3 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. First Time System | 12.398 | 9.059 |
+| 2. Replacement System | 12.398 | 8.888 |
+| 3. Expansion | 12.398 | 8.348 |
+
+### Expansion Type (5 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. No Rule Variance | 14.717 | 9.059 |
+| 2. First Time System | 14.682 | 8.875 |
+| 3. Replacement System | 14.684 | 8.344 |
+| 4. Minimum Lot Size | 14.682 | 7.85 |
+| 5. Seasonal Conversion | 14.684 | 7.66 |
+
+### Variance Type (5 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. No Rule Variance | 14.717 | 9.059 |
+| 2. First Time System | 14.682 | 8.875 |
+| 3. Replacement System | 14.684 | 8.344 |
+| 4. Experimental System | 12.398 | 7.809 |
+| 5. Seasonal Conversion Permit | 12.398 | 7.629 |
+
+### Variance Scope (4 radio options)
+| Option | x | y |
+|--------|---|---|
+| State Required | 14.977 | 8.001 |
+| LPI Only | 15.355 | 8.171 |
+| State Required | 14.977 | 8.511 |
+| LPI Only | 15.355 | 8.686 |
+
+### Fee Checkboxes (4 checkboxes)
+| Field | x | y |
+|-------|---|---|
+| fee_seasonal_conversion | 19.29 | 10.751 |
+| fee_variance | 19.29 | 10.877 |
+| fee_doubled | 19.29 | 11.002 |
+| fee_revision | 19.29 | 11.128 |
+
+---
+
+## PAGE 2
+
+### Shoreland Zoning (2 radio options)
+| Option | x | y |
+|--------|---|---|
+| Yes | 17.774 | 18.116 |
+| No | 17.802 | 17.832 |
+
+### Current Use Type (4 radio options)
+| Option | x | y |
+|--------|---|---|
+| Seasonal | 18.339 | 17.965 |
+| Year-Round | 18.339 | 17.751 |
+| Undeveloped | 19.394 | 17.964 |
+| Commercial | 19.394 | 17.75 |
+
+### Water Supply Type (5 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. Drilled Well | 17.904 | 16.449 |
+| 2. Dug / Point Well | 19.125 | 16.449 |
+| 3. Private | 17.813 | 16.239 |
+| 4. Public | 18.727 | 16.239 |
+| 5. Other | 19.633 | 16.239 |
+
+### Effluent Pump Required (3 radio options)
+| Option | x | y |
+|--------|---|---|
+| Yes | 18.397 | 15.369 |
+| No | 18.878 | 15.369 |
+| Maybe | 19.336 | 15.369 |
+
+### Garbage Disposal Required (3 radio options)
+| Option | x | y |
+|--------|---|---|
+| Yes | 17.961 | 14.699 |
+| No | 18.444 | 14.699 |
+| Maybe | 18.903 | 14.699 |
+
+### Disposal System to Serve (4 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. Single Family Dwelling Unit | 20.669 | 18.601 |
+| 2. Multiple Family Dwelling Units | 20.669 | 18.181 |
+| 3. Accessory Dwelling Unit(s) | 20.669 | 17.773 |
+| 4. Other | 20.669 | 17.326 |
+
+### Disposal Field Type (4 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. Stone Bed | 20.669 | 16.445 |
+| 2. Stone Trench | 20.669 | 16.266 |
+| 3. Proprietary Device | 20.669 | 16.087 |
+| 4. Other | 20.669 | 15.55 |
+
+### Field Array Type (4 radio options)
+| Option | x | y |
+|--------|---|---|
+| Cluster Array | 20.737 | 15.913 |
+| Regular | 20.737 | 15.734 |
+| Linear | 21.668 | 15.913 |
+| H2O Load Rated | 21.424 | 15.734 |
+
+### Design Flow Basis (3 radio options)
+| Option | x | y |
+|--------|---|---|
+| 1. Table 5A (Dwelling Units) | 23.091 | 18.204 |
+| 2. Table 5C (Other Facilities) | 23.091 | 17.988 |
+| 3. Section 5(G) - Meter Readings | 23.091 | 16.45 |
+
+---
+
+## PAGE 3
+
+### Observation Hole 1 Type (2 checkbox options)
+| Option | x | y |
+|--------|---|---|
+| Test Pit | 13.743 | 9.549 |
+| Boring | 14.378 | 9.549 |
+
+### Observation Hole 2 Type (2 checkbox options)
+| Option | x | y |
+|--------|---|---|
+| Test Pit | 17.711 | 9.549 |
+| Boring | 18.346 | 9.549 |
+
+---
+
+## PAGE 4
+
+Page 4 contains primarily text labels and elevation/cross-section fields. No additional selection/option/radio fields identified.
+
+---
+
+## Field Count Summary
+
+| Page | Fields | Options/Choices |
+|------|--------|------------------|
+| Page 1 | 7 groups | 41 total options |
+| Page 2 | 9 groups | 32 total options |
+| Page 3 | 2 groups | 4 total options |
+| Page 4 | 0 groups | 0 options |
+| **Total** | **18 groups** | **77 options** |
+
+*Note: Actual option count may vary slightly based on how multi-column layouts are interpreted. Coordinates extracted directly from DWG layer FORMTEXT.*

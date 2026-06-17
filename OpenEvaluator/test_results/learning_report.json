@@ -1,0 +1,43 @@
+{
+  "iteration": 1,
+  "score_pct": 43.0,
+  "filled": 114,
+  "total": 264,
+  "gap": 116,
+  "empty_categories": {
+    "Soil grid data": 70,
+    "Checkboxes/radio": 11,
+    "Numeric fields": 11,
+    "Text/descriptive": 40
+  },
+  "top_empty_fields": [
+    "Street (Mailing Address)",
+    "Owner/ Applicant Phone Number",
+    "Owner/ Applicant Email",
+    "Year Installed",
+    "Specify Other Tank (Treatment Tank)",
+    "Notes (Treatment Tank)",
+    "Complete Non-Engineered System Check Box",
+    "Primitive/ Limited System Check Box",
+    "Alternative Toilet Check Box",
+    "Non-Engineered Treatment Tank Check Box",
+    "Holding Tank Check Box",
+    "Engineered Tank Check Box",
+    "Complete Engineered System Check Box",
+    "Engineered Field Check Box",
+    "Misc",
+    "Specify Total Number of New Tanks (CNES)",
+    "Specify Type (Primitive/ Limited System)",
+    "Specify Type (Alt Toilet)",
+    "Total # of New Tanks (Treatment Tank)",
+    "Specify # of New Tanks (Non-Engineered Disposal Field)"
+  ],
+  "excluded_sections": 20,
+  "target": 230,
+  "recommendations": [
+    "1. Fill 116 remaining scorable fields to reach 87%",
+    "2. Map soil observation hole data to grid rows",
+    "3. Set checkbox/radio states based on application type",
+    "4. Populate numeric sizing fields from disposal field data"
+  ]
+}

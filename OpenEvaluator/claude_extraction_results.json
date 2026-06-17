@@ -1,0 +1,66 @@
+I'll analyze this hand-drawn field sketch carefully. Note that the image appears to be rotated/upside down, making some text difficult to read.
+
+```json
+{
+  "gps_coordinates": {"lat_dms": "", "lng_dms": ""},
+  "property_information": {
+    "map": "",
+    "lot": "",
+    "road_name": "",
+    "adjacent_lots": []
+  },
+  "soil_observations": [
+    {
+      "hole_number": 1,
+      "depth_range_in": "",
+      "texture": "",
+      "color": "",
+      "consistence": "",
+      "redox_features": "",
+      "limiting_factor": "",
+      "slope": ""
+    }
+  ],
+  "tank_info": {"capacity_gallons": "", "location": ""},
+  "well_info": {"type": "Drilled", "location": "", "depth_ft": ""},
+  "dimensions_ft": {
+    "house_to_tank": "",
+    "tank_to_field": "",
+    "field_to_well": "",
+    "field_to_property_line": "",
+    "lot_frontage": "",
+    "lot_depth": ""
+  },
+  "elevations": {
+    "erp_elevation_ft": "",
+    "finished_grade_in": "",
+    "top_of_pipe_in": "",
+    "bottom_of_field_in": "",
+    "limiting_factor_depth_in": "",
+    "groundwater_depth_in": ""
+  },
+  "field_layout": {
+    "brand": "",
+    "num_rows": "",
+    "modules_per_row": "",
+    "total_modules": "",
+    "cluster_width_ft": "",
+    "cluster_length_ft": ""
+  },
+  "tie_items": [
+    {"from": "", "to": "", "distance_ft": "28.5"},
+    {"from": "", "to": "", "distance_ft": "33"},
+    {"from": "", "to": "", "distance_ft": "16.5"},
+    {"from": "", "to": "", "distance_ft": "27"},
+    {"from": "", "to": "", "distance_ft": "57.5"},
+    {"from": "", "to": "", "distance_ft": "28"},
+    {"from": "", "to": "", "distance_ft": "21.5"},
+    {"from": "", "to": "", "distance_ft": "37.5"},
+    {"from": "", "to": "", "distance_ft": "30.5"},
+    {"from": "", "to": "", "distance_ft": "30"}
+  ],
+  "all_visible_text": "3-23-29, 15, 9-, 0, 46\", 21.5, 21, 37.5, 28.5, 33, 25, 17, 04, 30-X, 16.5, 21, 27, 57.5, 28, 11, 110, House, Gar, 30.5, 23, Drilled, 7048"
+}
+```
+
+Note: This sketch is rotated and significantly faded/aged, making many values uncertain. Visible elements include a date (3-23-29), a "House" label, a "Gar" (garage) structure, a "Drilled" well notation, and various dimension measurements. The red markings near the "46\"" notation may indicate a limiting factor or special note. Without clearer resolution and proper orientation, some text interpretations are approximate.

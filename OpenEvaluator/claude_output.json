@@ -1,0 +1,89 @@
+{
+  "map_lot": "",
+  "road_name": "",
+  "scale": "",
+  "date": "5-25-29",
+  "soil_observations": [
+    {
+      "hole": "",
+      "depth": "",
+      "texture": "",
+      "color": "",
+      "limiting_factor": "",
+      "consistence": "",
+      "redox": ""
+    }
+  ],
+  "gps": "",
+  "well": {
+    "type": "",
+    "distance_ft": ""
+  },
+  "tank": {
+    "capacity": "",
+    "location": ""
+  },
+  "dimensions_ft": {
+    "house_to_tank": "",
+    "tank_to_field": "",
+    "field_to_well": "",
+    "lot_frontage": "",
+    "lot_depth": "",
+    "road_frontage_ft": ""
+  },
+  "distances_list": [
+    "21.5",
+    "311",
+    "285",
+    "55",
+    "25",
+    "165",
+    "27",
+    "57.5",
+    "78",
+    "30",
+    "30.5",
+    "23",
+    "21"
+  ],
+  "tie_items": [
+    {
+      "from": "",
+      "to": "",
+      "ft": ""
+    }
+  ],
+  "elevations": {
+    "erp": "",
+    "finished_grade": "",
+    "top_pipe": "",
+    "bottom_field": "",
+    "groundwater": "",
+    "limiting_factor_depth": "",
+    "differential_ft": ""
+  },
+  "field_system": {
+    "brand": "",
+    "rows": "",
+    "modules": "",
+    "cluster_w": "",
+    "cluster_l": ""
+  },
+  "buildings": [
+    {
+      "name": "House",
+      "type": "house",
+      "setback_ft": ""
+    },
+    {
+      "name": "Garage",
+      "type": "garage",
+      "setback_ft": ""
+    }
+  ],
+  "erp_description": "",
+  "red_marks": "Red line/arrow notation with '46\"' marking near upper-left structure (labeled '15')",
+  "notes": "Faded pencil sketch, partly rotated. Multiple parcel/structure outlines with dimension callouts. Building labeled '15' upper area; 'House' and 'Garage' labeled lower portion. Circled value '21'.",
+  "all_text_found": "5-25-29, 15, 9, 0, 46\", 21.5, 311, 285, 55, 25, 165, 27, 57.5, 78, 30, 30-x, 21, House, Garage, 30.5, 23, 11",
+  "_claude_raw": "I can see this is a faded, hand-drawn field sketch (rotated/upside down). I'll extract what is legibly visible, leaving uncertain fields blank.\n\n```json\n{\n  \"map_lot\": \"\",\n  \"road_name\": \"\",\n  \"scale\": \"\",\n  \"date\": \"5-25-29\",\n  \"soil_observations\": [\n    {\"hole\":\"\", \"depth\":\"\", \"texture\":\"\", \"color\":\"\", \"limiting_factor\":\"\", \"consistence\":\"\", \"redox\":\"\"}\n  ],\n  \"gps\": \"\",\n  \"well\": {\"type\":\"\", \"distance_ft\":\"\"},\n  \"tank\": {\"capacity\":\"\", \"location\":\"\"},\n  \"dimensions_ft\": {\n    \"house_to_tank\":\"\",\n    \"tank_to_field\":\"\",\n    \"field_to_well\":\"\",\n    \"lot_frontage\":\"\",\n    \"lot_depth\":\"\",\n    \"road_frontage_ft\":\"\"\n  },\n  \"distances_list\": [\"21.5\", \"311\", \"285\", \"55\", \"25\", \"165\", \"27\", \"57.5\", \"78\", \"30\", \"30.5\", \"23\", \"21\"],\n  \"tie_items\": [\n    {\"from\":\"\", \"to\":\"\", \"ft\":\"\"}\n  ],\n  \"elevations\": {\n    \"erp\":\"\",\n    \"finished_grade\":\"\",\n    \"top_pipe\":\"\",\n    \"bottom_field\":\"\",\n    \"groundwater\":\"\",\n    \"limiting_factor_depth\":\"\",\n    \"differential_ft\":\"\"\n  },\n  \"field_system\": {\"brand\":\"\", \"rows\":\"\", \"modules\":\"\", \"cluster_w\":\"\", \"cluster_l\":\"\"},\n  \"buildings\": [\n    {\"name\":\"House\", \"type\":\"house\", \"setback_ft\":\"\"},\n    {\"name\":\"Garage\", \"type\":\"garage\", \"setback_ft\":\"\"}\n  ],\n  \"erp_description\": \"\",\n  \"red_marks\": \"Red line/arrow notation with '46\\\"' marking near upper-left structure (labeled '15')\",\n  \"notes\": \"Faded pencil sketch, partly rotated. Multiple parcel/structure outlines with dimension callouts. Building labeled '15' upper area; 'House' and 'Garage' labeled lower portion. Circled value '21'.\",\n  \"all_text_found\": \"5-25-29, 15, 9, 0, 46\\\", 21.5, 311, 285, 55, 25, 165, 27, 57.5, 78, 30, 30-x, 21, House, Garage, 30.5, 23, 11\"\n}\n```\n\nNote: This sketch is significantly faded and rotated, so many numeric values are ambiguous and several fields could not be reliably determined. I'd recommend verifying readings against the original document, especially the soil observation data and elevation figures, which were not legibly present."
+}

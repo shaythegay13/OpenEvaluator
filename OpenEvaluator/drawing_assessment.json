@@ -1,0 +1,100 @@
+{
+  "page_3": {
+    "page": 3,
+    "score": 0,
+    "generated_analysis": {
+      "image_size": [
+        6,
+        1
+      ],
+      "line_count": 0,
+      "contour_count": 0,
+      "has_text": false,
+      "has_grid": false,
+      "detected_elements": [],
+      "element_confidence": 0.0
+    },
+    "example_analysis": {
+      "image_size": [
+        1275,
+        1650
+      ],
+      "line_count": 1209,
+      "contour_count": 15346,
+      "has_text": true,
+      "has_grid": true,
+      "detected_elements": [
+        "geometric_structure",
+        "enclosed_areas",
+        "annotations",
+        "detailed_elements",
+        "grid_system"
+      ],
+      "element_confidence": 0.5
+    },
+    "gaps": [
+      "Missing element types: geometric_structure, grid_system, annotations, detailed_elements, enclosed_areas",
+      "Drawing size mismatch (ratio: 0.00)",
+      "Drawing lacks detail/complexity (lines: 0 vs 1209 expected)",
+      "Missing text annotations/dimensions",
+      "Missing grid system (should be 16x31)"
+    ],
+    "has_all_elements": false,
+    "size_ratio": 2.8520499108734404e-06
+  },
+  "page_4": {
+    "page": 4,
+    "score": 0,
+    "generated_analysis": {
+      "image_size": [
+        6,
+        1
+      ],
+      "line_count": 0,
+      "contour_count": 0,
+      "has_text": false,
+      "has_grid": false,
+      "detected_elements": [],
+      "element_confidence": 0.0
+    },
+    "example_analysis": {
+      "image_size": [
+        1275,
+        1650
+      ],
+      "line_count": 1623,
+      "contour_count": 22446,
+      "has_text": true,
+      "has_grid": true,
+      "detected_elements": [
+        "geometric_structure",
+        "enclosed_areas",
+        "annotations",
+        "detailed_elements",
+        "grid_system"
+      ],
+      "element_confidence": 0.5
+    },
+    "gaps": [
+      "Missing element types: geometric_structure, grid_system, annotations, detailed_elements, enclosed_areas",
+      "Drawing size mismatch (ratio: 0.00)",
+      "Drawing lacks detail/complexity (lines: 0 vs 1623 expected)",
+      "Missing text annotations/dimensions"
+    ],
+    "has_all_elements": false,
+    "size_ratio": 2.8520499108734404e-06
+  },
+  "overall_drawing_score": 0.0,
+  "learning_report": "## Drawing Assessment & Learning Feedback\n\n### Page 3 - Site Plan\n**Score: 0/100**\n\n**Issues to Fix:**\n- Missing element types: geometric_structure, grid_system, annotations, detailed_elements, enclosed_areas\n- Drawing size mismatch (ratio: 0.00)\n- Drawing lacks detail/complexity (lines: 0 vs 1209 expected)\n- Missing text annotations/dimensions\n- Missing grid system (should be 16x31)\n\n**Analysis:**\n- Detected elements: \n- Line count: 0\n- Has annotations: False\n- Has grid: False\n\n### Page 4 - Disposal Plan\n**Score: 0/100**\n\n**Issues to Fix:**\n- Missing element types: geometric_structure, grid_system, annotations, detailed_elements, enclosed_areas\n- Drawing size mismatch (ratio: 0.00)\n- Drawing lacks detail/complexity (lines: 0 vs 1623 expected)\n- Missing text annotations/dimensions\n\n**Analysis:**\n- Detected elements: \n- Line count: 0\n- Has annotations: False\n\n## Overall Drawing Quality: 0/100\n\u274c Drawings need significant rework\n",
+  "gaps_for_improvement": [
+    "Missing element types: geometric_structure, grid_system, annotations, detailed_elements, enclosed_areas",
+    "Drawing size mismatch (ratio: 0.00)",
+    "Drawing lacks detail/complexity (lines: 0 vs 1209 expected)",
+    "Missing text annotations/dimensions",
+    "Missing grid system (should be 16x31)",
+    "Missing element types: geometric_structure, grid_system, annotations, detailed_elements, enclosed_areas",
+    "Drawing size mismatch (ratio: 0.00)",
+    "Drawing lacks detail/complexity (lines: 0 vs 1623 expected)",
+    "Missing text annotations/dimensions"
+  ]
+}

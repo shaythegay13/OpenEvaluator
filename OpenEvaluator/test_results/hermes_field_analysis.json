@@ -1,0 +1,511 @@
+{
+  "page_1": {
+    "page_num": 1,
+    "filled_fields": [
+      {
+        "name": "Street Name",
+        "value": "17 Aspen Way"
+      },
+      {
+        "name": "City/ Town/ Plantation",
+        "value": "Turner"
+      },
+      {
+        "name": "Map #",
+        "value": "26"
+      },
+      {
+        "name": "Lot #",
+        "value": "18"
+      },
+      {
+        "name": "Owner Name",
+        "value": "Kristen Marquis"
+      },
+      {
+        "name": "Applicant Name",
+        "value": "Kristen Marquis"
+      },
+      {
+        "name": "City (Mailing Address)",
+        "value": "Turner"
+      },
+      {
+        "name": "State (Mailing Address)",
+        "value": "Maine"
+      },
+      {
+        "name": "Zip Code (Mailing Address)",
+        "value": "04282"
+      },
+      {
+        "name": "LPI #",
+        "value": "338"
+      },
+      {
+        "name": "Seasonal Conversion Check Box",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Application",
+        "value": "Off"
+      },
+      {
+        "name": "Expansion",
+        "value": "Off"
+      },
+      {
+        "name": "Variance Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "First Time System Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "Replacement Variance Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "Treatment Tanks",
+        "value": "Off"
+      },
+      {
+        "name": "Site Evaluator Name",
+        "value": "George Bouchles"
+      },
+      {
+        "name": "Site Evaluator Phone #",
+        "value": "207-240-5567"
+      },
+      {
+        "name": "Site Evaluator Email",
+        "value": "gsb@cadmasterr.com"
+      },
+      {
+        "name": "Type of Application",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Application",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Application",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Application",
+        "value": "Off"
+      },
+      {
+        "name": "Expansion",
+        "value": "Off"
+      },
+      {
+        "name": "Variance Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "Variance Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "Variance Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "Variance Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "First Time System Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "Replacement Variance Requirement",
+        "value": "Off"
+      },
+      {
+        "name": "Treatment Tanks",
+        "value": "Off"
+      },
+      {
+        "name": "Treatment Tanks",
+        "value": "Off"
+      },
+      {
+        "name": "Treatment Tanks",
+        "value": "Off"
+      }
+    ],
+    "empty_fields": [
+      "Street #",
+      "Street (Mailing Address)",
+      "Owner/ Applicant Phone Number",
+      "Owner/ Applicant Email",
+      "Property Owner Signature",
+      "Date (Property Owner Signature)",
+      "Installer Name",
+      "Installer Phone #",
+      "Installer Email",
+      "Issuing Municipality or Territory",
+      "Permit #",
+      "Permit Issued Date",
+      "LPI Signature",
+      "LPI Signature (Inspection #1)",
+      "Date for First LPI Inspection",
+      "LPI Signature (Inspection #2)",
+      "Date for Second LPI Inspection",
+      "Fee Calculation Area",
+      "Revision Check Box",
+      "Doubled Fee Check Box",
+      "Variance Check Box",
+      "Total Fee",
+      "Town Share",
+      "State 25%",
+      "DEP WQS",
+      "Type of System Replaced",
+      "Year Installed",
+      "Regular Check Box (Treatment Tank)",
+      "Low Profile Check Box (Treatment Tank)",
+      "H-20 Check Box (Treatment Tank)",
+      "Capacity (Treatment Tank)",
+      "Specify Other Tank (Treatment Tank)",
+      "Tank Capacity (Treatment Tank)",
+      "Total # of New Tanks (Treatment Tank)",
+      "Notes (Treatment Tank)",
+      "Risers Required Checkbox",
+      "Complete Non-Engineered System Check Box",
+      "Specify Total Number of New Tanks (CNES)",
+      "Primitive/ Limited System Check Box",
+      "Specify Type (Primitive/ Limited System)",
+      "Alternative Toilet Check Box",
+      "Specify Type (Alt Toilet)",
+      "Non-Engineered Treatment Tank Check Box",
+      "Specify # of New Tanks (Non-Engineered Disposal Field)",
+      "Holding Tank Check Box",
+      "Non-Engineered Disposal Field Check Box",
+      "Complete Engineered System Check Box",
+      "# of New Disposal Tanks",
+      "# of New Tanks (CES)",
+      "# of Pumps (CES)",
+      "Engineered Tank Check Box",
+      "Specify # of New Tanks (Engineered Tank)",
+      "Engineered Field Check Box",
+      "Misc. Components Check Box",
+      "Specify (Misc. Components)",
+      "Pre-Treatment Tank Check Box",
+      "Pre-Treatment Component Check Box",
+      "SE #",
+      "Site Evaluator Signature",
+      "Date of Site Evaluator Signature"
+    ],
+    "total_fields": 94
+  },
+  "page_2": {
+    "page_num": 2,
+    "filled_fields": [
+      {
+        "name": "Property Size",
+        "value": "2.35"
+      },
+      {
+        "name": "property size measurement",
+        "value": "Off"
+      },
+      {
+        "name": "SLZ y/n",
+        "value": "Off"
+      },
+      {
+        "name": "Current Use",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Water Supply",
+        "value": "Drilled Well"
+      },
+      {
+        "name": "Effluent/Ejector Pump",
+        "value": "Off"
+      },
+      {
+        "name": "GDU Y/N/M",
+        "value": "Off"
+      },
+      {
+        "name": "GDU if yes",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal System to Serve",
+        "value": "Single Family Dwelling Unit"
+      },
+      {
+        "name": "Disposal Field Type & Size",
+        "value": "Off"
+      },
+      {
+        "name": "Proprietary Device Options",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal Field Type & Size",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal Field Size Measurement",
+        "value": "Off"
+      },
+      {
+        "name": "Design Flow",
+        "value": "Off"
+      },
+      {
+        "name": "property size measurement",
+        "value": "Off"
+      },
+      {
+        "name": "SLZ y/n",
+        "value": "Off"
+      },
+      {
+        "name": "Current Use",
+        "value": "Off"
+      },
+      {
+        "name": "Current Use",
+        "value": "Off"
+      },
+      {
+        "name": "Current Use",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Water Supply",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Water Supply",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Water Supply",
+        "value": "Off"
+      },
+      {
+        "name": "Type of Water Supply",
+        "value": "Off"
+      },
+      {
+        "name": "Effluent/Ejector Pump",
+        "value": "Off"
+      },
+      {
+        "name": "Effluent/Ejector Pump",
+        "value": "Off"
+      },
+      {
+        "name": "GDU Y/N/M",
+        "value": "Off"
+      },
+      {
+        "name": "GDU Y/N/M",
+        "value": "Off"
+      },
+      {
+        "name": "GDU if yes",
+        "value": "Off"
+      },
+      {
+        "name": "GDU if yes",
+        "value": "Off"
+      },
+      {
+        "name": "GDU if yes",
+        "value": "Off"
+      },
+      {
+        "name": "Design Flow",
+        "value": "Off"
+      },
+      {
+        "name": "Design Flow",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal Field Size Measurement",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal System to Serve",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal System to Serve",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal System to Serve",
+        "value": "Off"
+      },
+      {
+        "name": "Disposal Field Type & Size",
+        "value": "Proprietary Device"
+      },
+      {
+        "name": "Disposal Field Type & Size",
+        "value": "Off"
+      },
+      {
+        "name": "Proprietary Device Options",
+        "value": "Off"
+      },
+      {
+        "name": "Proprietary Device Options",
+        "value": "Off"
+      },
+      {
+        "name": "Proprietary Device Options",
+        "value": "Off"
+      }
+    ],
+    "empty_fields": [
+      "Owner",
+      "Address",
+      "Latitude (degrees)",
+      "Latitude (minutes)",
+      "Latitude (seconds)",
+      "Longitude (degrees)",
+      "Longitude (minutes)",
+      "Longitude (seconds)",
+      "GPS margin of error",
+      "specify box (type of water supply)",
+      "Dose (Engineered Systems)",
+      "# of Tanks (garbage disposal unit)",
+      "# of bedrooms for option 1 (disposal system to serve)",
+      "# of bedrooms for option 2 (disposal system to serve)",
+      "# of bedrooms for option 3 (disposal system to serve)",
+      "specify for other (disposal system to serve)",
+      "specify for other (disposal field type and size)",
+      "size (disposal field type and size)",
+      "gallons per day (design flow)",
+      "show calculations for \"other facilities\" (design flow)",
+      "profile (soil data & design class)",
+      "condition (soil data & design class)",
+      "observation hole # (soil data & design class)",
+      "limiting factor depth (soil data & design class)",
+      "limiting factor elevation (soil data & design class)",
+      "make #1 (pre-treatment)",
+      "model #1 (pre-treatment)",
+      "Notes #1 (pre-treatment)",
+      "Maintenance Contract #1 (pre-treatment)",
+      "make #2 (pre-treatment)",
+      "model #2 (pre-treatment)",
+      "Notes #2 (pre-treatment)",
+      "Maintenance Contract #2 (pre-treatment)",
+      "Additional Notes",
+      "Site Evaluator Signature/ Initials (pg2)",
+      "SE #",
+      "Date of SE signature/ initial (pg2)"
+    ],
+    "total_fields": 78
+  },
+  "page_3": {
+    "page_num": 3,
+    "filled_fields": [
+      {
+        "name": "Ground water- table1-grid",
+        "value": "Off"
+      },
+      {
+        "name": "Restrictive Layer-table1-grid",
+        "value": "Off"
+      },
+      {
+        "name": "Ground water-table2-grid",
+        "value": "Off"
+      },
+      {
+        "name": "Restrictive Layer-table2-grid",
+        "value": "Off"
+      }
+    ],
+    "empty_fields": [
+      "Owner",
+      "Address",
+      "Observation Hole-table1-grid",
+      "Test Pit-table1-grid",
+      "Boring-table1-grid",
+      "Organic Horizon Thickness-table1-grid",
+      "Ground Surface Elevation-table1-grid",
+      "Depth to Exploration or Refusal-table1-grid",
+      "Textures-table1-grid",
+      "Cosistence-table1-grid",
+      "Color-table1-grid",
+      "Redox Features-table1-grid",
+      "Profile-table1-grid",
+      "Condition-table1-grid",
+      "Slope-table1-grid",
+      "Limiting Factor-table1-grid",
+      "Bedrock-table1-grid",
+      "Pit Depth-table1-grid",
+      "Observation Hole-table2-grid",
+      "Test Pit-table2-grid",
+      "Boring-table2-grid",
+      "Organic Horizon Thickness-table2-grid",
+      "Ground Surface Elevation-table2-grid",
+      "Depth to Exploration or Refusal-table2-grid",
+      "textures-table2-grid",
+      "Consistence-table2-grid",
+      "Color-table2-grid",
+      "Redox Features-table2-grid",
+      "Profile-table2-grid",
+      "Condition-table2-grid",
+      "Slope-table2-grid",
+      "Limiting Factor-table2-grid",
+      "Bedrock-table2-grid",
+      "Pit Depth-table2-grid",
+      "SE signature/ initial pg3 grid",
+      "SE#",
+      "Date of SE signature / initial-pg3 grid"
+    ],
+    "total_fields": 41
+  },
+  "page_4": {
+    "page_num": 4,
+    "filled_fields": [
+      {
+        "name": "scale (pg 4 grid)",
+        "value": "40"
+      },
+      {
+        "name": "Finished Grade Elevation (pg 4 grid)",
+        "value": "0"
+      },
+      {
+        "name": "Top Distribution Pipe or Proprietary Device (pg 4 grid)",
+        "value": "-12"
+      },
+      {
+        "name": "Bottom of Disposal Field (pg 4 grid)",
+        "value": "30"
+      }
+    ],
+    "empty_fields": [
+      "Owner",
+      "Address",
+      "Depth of Backfill (upslope) (pg 4 grid)",
+      "Depth of Backfill (downslop) (pg 4 grid)",
+      "Location & Description (pg 4 grid)",
+      "Reference Elevation (pg 4 grid)",
+      "Vertical Scale (pg 4 grid)",
+      "Horizontal Scale (pg 4 grid)",
+      "SE Signature (pg 4 grid)",
+      "SE #",
+      "Date of SE Sig (pg 4 grid)"
+    ],
+    "total_fields": 15
+  }
+}

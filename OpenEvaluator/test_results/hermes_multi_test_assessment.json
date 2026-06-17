@@ -1,0 +1,75 @@
+{
+  "timestamp": true,
+  "test_cases": [
+    {
+      "row": 2,
+      "property": "26-018 (Kristen Marquis)",
+      "has_example": true,
+      "example_folder": "example 1",
+      "pdf_exists": true,
+      "score": 50,
+      "filled_fields": 83,
+      "total_fields": 228,
+      "text_fields": 126,
+      "checkbox_fields": 42,
+      "fill_rate": 36.4,
+      "status": "assessed",
+      "example_pdfs_found": 4,
+      "example_pdfs_total": 4
+    },
+    {
+      "row": 3,
+      "property": "Synthetic Test 1",
+      "has_example": false,
+      "example_folder": null,
+      "pdf_exists": true,
+      "score": 50,
+      "filled_fields": 83,
+      "total_fields": 228,
+      "text_fields": 126,
+      "checkbox_fields": 42,
+      "fill_rate": 36.4,
+      "status": "assessed"
+    },
+    {
+      "row": 4,
+      "property": "26-123",
+      "has_example": true,
+      "example_folder": "example 2",
+      "pdf_exists": true,
+      "score": 50,
+      "filled_fields": 83,
+      "total_fields": 228,
+      "text_fields": 126,
+      "checkbox_fields": 42,
+      "fill_rate": 36.4,
+      "status": "assessed",
+      "example_pdfs_found": 4,
+      "example_pdfs_total": 4
+    },
+    {
+      "row": 5,
+      "property": "Synthetic Test 2",
+      "has_example": false,
+      "example_folder": null,
+      "pdf_exists": true,
+      "score": 50,
+      "filled_fields": 83,
+      "total_fields": 228,
+      "text_fields": 126,
+      "checkbox_fields": 42,
+      "fill_rate": 36.4,
+      "status": "assessed"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "assessed": 4,
+    "average_score": 50,
+    "quality_issues": [
+      "Form fields incomplete on pages 1-2",
+      "Drawing content matching low on pages 3-4",
+      "Need to improve field filling rate and drawing accuracy"
+    ]
+  }
+}
