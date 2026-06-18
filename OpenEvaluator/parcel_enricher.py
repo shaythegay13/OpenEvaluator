@@ -19,7 +19,7 @@ def query_by_town_and_address(town: str, street: str) -> list:
         return []
 
 def get_parcel_dimensions(town: str, address: str, acres: Optional[float] = None) -> Dict[str, Any]:
-    """Get parcel width/depth from Maine GeoLibrary."""
+    """Get parcel boundary rings and corner/pin coordinates from Maine GeoLibrary."""
     features = query_by_town_and_address(town, address)
     if not features:
         return {}
@@ -39,14 +39,23 @@ def get_parcel_dimensions(town: str, address: str, acres: Optional[float] = None
     rings = g.get("rings", [])
     if not rings:
         return {"found": True, "error": "no geometry"}
+
+    # Extract corner/pin coordinates from exterior ring (first ring)
+    exterior_ring = rings[0]
+    corners = exterior_ring
+
+    # Compute bounding box dimensions for backward compatibility
     xs = [p[0] for r in rings for p in r]
     ys = [p[1] for r in rings for p in r]
     w_m = max(xs) - min(xs)
     d_m = max(ys) - min(ys)
+
     return {
         "found": True,
         "map_bk_lot": a["MAP_BK_LOT"],
         "prop_loc": a["PROP_LOC"],
+        "rings": rings,
+        "corners": corners,
         "width_ft": round(w_m * 3.28084),
         "depth_ft": round(d_m * 3.28084),
         "area_sqm": round(a["Shape__Area"], 1),

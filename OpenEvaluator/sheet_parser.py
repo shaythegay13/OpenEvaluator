@@ -64,10 +64,51 @@ RAW_ROW: Dict[str, str] = {
     "Elevation reference point (ERP) and elevations (if known)": (
         "ERP = nail set 12 inches above grade in 6\" maple tree, "
         "finish grade elevation = 0\", top of pipe = -12\", "
-        'bottom of proprietary device = =24", bottom of disposal area =30"'
+        'bottom of proprietary device = -24", bottom of disposal area = -30"'
     ),
     "Uploads":    "https://drive.google.com/open?id=1Tg5V7uI99qcUgqIjQAlrqrASexL7B5yA",
     "Special Notes": "none",
+}
+
+# Test row 2: Roberts (26-123)
+ROBERTS_ROW: Dict[str, str] = {
+    "Timestamp":        "3/5/2026 14:22:15",
+    "Client name, Phone number, and Address": "Charles Roberts, empty, empty",
+    "Property Location Details": "450 Lane Road, Turner, Maine 04282",
+    "Map and Lot # and Acreage": "26, 123, 1.85",
+    "Site Evaluator's Information": (
+        "George Bouchles, 338, 207-240-5567, "
+        "gsb@cadmasterr.com, Cadmasterr Drafting & Land Surveying"
+    ),
+    "Application Type": "New system",
+    "Use and bedrooms/flow": (
+        "single family dwelling, 2 bedroom mobile home, 180 gallons per day"
+    ),
+    "Seasonal use":          "Year-round",
+    "Shoreland zoning":       "",
+    "Water supply and well": "new drilled well",
+    "Soil summary at disposal area": (
+        "brown fine sandy loam to 4 inches, "
+        "yellowish brown loamy sand from 4 inches to 18 inches, "
+        "gray sand to pit depth of 42 inches"
+    ),
+    "Limiting factor":          "limiting factor is fine sand at 18 inches",
+    "Disposal system type":     "Infiltrator",
+    "Septic tank setup":       "new 500 gallon septic tank to be installed",
+    "Design flow override":     "180 gallons per day",
+    "Planned field size and layout (if known)": (
+        "2 rows of 4 infiltrator modules, 8 units total, 8'x20' cluster formation"
+    ),
+    "Key distances between features": (
+        "field to well 120 feet, field to house 25 feet, "
+        "tank to field 8 feet, upslope backfill 4 inches, downslope backfill 10 inches"
+    ),
+    "Elevation reference point (ERP) and elevations (if known)": (
+        "ERP = finish grade, finish grade elevation = 0\", top of pipe = -8\", "
+        'bottom of proprietary device = -18", bottom of disposal area = -28"'
+    ),
+    "Uploads":    "https://drive.google.com/open?id=1Tg5V7uI99qcUgqIjQAlrqrASexL7B5yA",
+    "Special Notes": "sloped site, mobile home",
 }
 
 
@@ -270,23 +311,25 @@ def parse_elevation_reference(raw: str) -> Dict[str, str]:
     """
     'ERP = nail set 12 inches above grade in 6" maple tree,
      finish grade elevation = 0", top of pipe = -12",
-     bottom of proprietary device = =24", bottom of disposal area =30"'
+     bottom of proprietary device = -24", bottom of disposal area = -30"'
 
-    Extracts individual elevation values.
+    Extracts individual elevation values (all four separately, no merging).
     """
     erp = {}
     mapping = {
-        "finish_grade_elevation":                 r"finish grade elevation\s*=\s*([-\d.]+)\"",
-        "top_of_distribution_pipe_elevation":    r"top of pipe\s*=\s*([-\d.]+)\"",
-        "bottom_of_disposal_field_elevation":    r"bottom of disposal area\s*=\s*([-\d.]+)\"",
+        "finish_grade_elevation":                      r"finish grade elevation\s*=+\s*([-\d.]+)\"",
+        "top_of_distribution_pipe_elevation":         r"top of pipe\s*=+\s*([-\d.]+)\"",
+        "bottom_of_proprietary_device_elevation":     r"bottom of proprietary device\s*=+\s*([-\d.]+)\"",
+        "bottom_of_disposal_field_elevation":         r"bottom of disposal area\s*=+\s*([-\d.]+)\"",
     }
     for key, pattern in mapping.items():
         m = re.search(pattern, raw, re.IGNORECASE)
         erp[key] = m.group(1) if m else ""
     # Page 6 equivalent fields
-    erp["finished_grade_elevation_p6"]           = erp.get("finish_grade_elevation", "")
-    erp["top_of_distribution_pipe_elevation_p6"]  = erp.get("top_of_distribution_pipe_elevation", "")
-    erp["bottom_of_disposal_field_elevation_p6"]  = erp.get("bottom_of_disposal_field_elevation", "")
+    erp["finished_grade_elevation_p6"]                = erp.get("finish_grade_elevation", "")
+    erp["top_of_distribution_pipe_elevation_p6"]      = erp.get("top_of_distribution_pipe_elevation", "")
+    erp["bottom_of_proprietary_device_elevation_p6"]  = erp.get("bottom_of_proprietary_device_elevation", "")
+    erp["bottom_of_disposal_field_elevation_p6"]      = erp.get("bottom_of_disposal_field_elevation", "")
     return erp
 
 
@@ -345,28 +388,36 @@ def parse_field_layout(raw: str) -> Dict[str, str]:
 def parse_distances(raw: str) -> Dict[str, str]:
     """
     'house to tank = 8', tank to field may vary,
-     field to well 100 feet minimum, unknown'
-    
-    Also extract: house-to-tank, well setback, system-to-property-line.
+     field to well 100 feet minimum, upslope backfill 4 inches, downslope backfill 10 inches'
+
+    Extract: house-to-tank, well setback, backfill upslope/downslope, etc.
     """
     result = {}
-    
+
     # Well setback: "field to well 100 feet"
     m = re.search(r"field to well\s*=?\s*(\d+)", raw, re.IGNORECASE)
     result["setback_well"] = f"{m.group(1)} ft" if m else ""
-    
+
     # House to tank: "house to tank = 8'" or "house to tank 8 ft"
     m = re.search(r"(?:house|home)\s*to\s*tank\s*=?\s*(\d+)", raw, re.IGNORECASE)
     result["setback_tank_to_house"] = f"{m.group(1)}'" if m else ""
-    
+
     # Field to house: "field to house 100 ft"
     m = re.search(r"field to (?:house|building|structure)\s*=?\s*(\d+)", raw, re.IGNORECASE)
     result["setback_field_to_house"] = f"{m.group(1)} ft" if m else ""
-    
+
     # System to property line
     m = re.search(r"(?:system|field)\s*to\s*(?:property|line|boundary)\s*=?\s*(\d+)", raw, re.IGNORECASE)
     result["setback_property_line"] = f"{m.group(1)} ft" if m else ""
-    
+
+    # Backfill upslope: "upslope backfill 4 inches"
+    m = re.search(r"upslope\s+backfill\s+(\d+)\s*(?:inches?|in)", raw, re.IGNORECASE)
+    result["backfill_upslope_inches"] = m.group(1) if m else ""
+
+    # Backfill downslope: "downslope backfill 10 inches"
+    m = re.search(r"downslope\s+backfill\s+(\d+)\s*(?:inches?|in)", raw, re.IGNORECASE)
+    result["backfill_downslope_inches"] = m.group(1) if m else ""
+
     return result
 
 
@@ -474,11 +525,12 @@ def derive_missing(fields: Dict[str, str]) -> Dict[str, str]:
     filled.setdefault("se_number_page6",   eval_lpi)
     filled.setdefault("se_date_page6",     "03/01/2026")
 
-    # Scale — not provided; use reasonable defaults
-    filled.setdefault("site_plan_scale",            "40")
-    filled.setdefault("site_location_map_scale",     "40")
-    filled.setdefault("scale_page5",                "20")
-    filled.setdefault("scale_page6",                "40")
+    # Scale — separate scales for cross-section and plan view
+    # Cross-section: vertical and horizontal (feet per inch)
+    # Plan view: feet per inch
+    filled.setdefault("cross_section_vertical_scale_ft_per_in",   "2.5")   # 1" = 2.5 ft
+    filled.setdefault("cross_section_horizontal_scale_ft_per_in",  "5.0")  # 1" = 5 ft
+    filled.setdefault("plan_view_scale_ft_per_in",                "10.0")  # 1" = 10 ft
 
     # Soil observation hole fields — not available in source
     filled.setdefault("oh1_organic_thickness",           "")
@@ -507,11 +559,11 @@ def derive_missing(fields: Dict[str, str]) -> Dict[str, str]:
     filled.setdefault("bedrock_depth_p4_hole1", "")
     filled.setdefault("bedrock_depth_p4_hole2", "")
 
-    # Backfill depths — not in source, use placeholder
-    filled.setdefault("depth_backfill_upslope",    "")
-    filled.setdefault("depth_backfill_downslope",  "")
-    filled.setdefault("backfill_depth_upslope_p6",  "")
-    filled.setdefault("backfill_depth_downslope_p6", "")
+    # Backfill depths — from parsed distances
+    filled.setdefault("depth_backfill_upslope",    filled.get("backfill_upslope_inches", ""))
+    filled.setdefault("depth_backfill_downslope",  filled.get("backfill_downslope_inches", ""))
+    filled.setdefault("backfill_depth_upslope_p6",  filled.get("backfill_upslope_inches", ""))
+    filled.setdefault("backfill_depth_downslope_p6", filled.get("backfill_downslope_inches", ""))
 
     # Issuing municipality — not in source, leave blank
     filled.setdefault("issuing_municipality", "")
