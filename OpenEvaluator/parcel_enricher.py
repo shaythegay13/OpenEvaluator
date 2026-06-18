@@ -20,7 +20,13 @@ def query_by_town_and_address(town: str, street: str) -> list:
 
 def get_parcel_dimensions(town: str, address: str, acres: Optional[float] = None) -> Dict[str, Any]:
     """Get parcel boundary rings and corner/pin coordinates from Maine GeoLibrary."""
-    features = query_by_town_and_address(town, address)
+    # Extract street name from address (e.g., "17 Aspen Way" → "Aspen Way")
+    # GeoLibrary stores PROP_LOC as "00XXX STREET NAME", so we need to search by street name only
+    import re
+    street_match = re.search(r'([A-Za-z\s]+(?:Way|Road|Street|Lane|Drive|Court|Avenue|Terrace))', address, re.IGNORECASE)
+    search_address = street_match.group(0) if street_match else address
+
+    features = query_by_town_and_address(town, search_address)
     if not features:
         return {}
     # Score parcels by acreage match to find the right one

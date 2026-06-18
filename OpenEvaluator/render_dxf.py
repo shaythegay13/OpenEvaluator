@@ -439,6 +439,183 @@ def render_soil_profile(
     }
 
 
+def render_boundary_layer(
+    fields: Dict[str, str],
+    output_path: Path,
+    dpi: int = 96,
+) -> Dict[str, Any]:
+    """
+    Render a boundary layer for the plan view (page 3 upper half).
+
+    Inputs (from sheet_parser + parcel_enricher):
+    - map_number, lot_number: parcel ID
+    - town, site_address: for GeoLibrary lookup
+    - acreage: for scoring multiple matches
+
+    Outputs:
+    - PNG of plan view showing parcel boundary, corner markers, dimensioned edges, lot number
+    """
+    from PIL import Image, ImageDraw, ImageFont
+    from parcel_enricher import get_parcel_dimensions
+
+    town = fields.get("town", "")
+    address = fields.get("site_address", "")
+    acres = float(fields.get("acreage", 0)) if fields.get("acreage") else None
+    map_num = fields.get("map_number", "")
+    lot_num = fields.get("lot_number", "")
+
+    # Fetch parcel boundary from GeoLibrary
+    parcel = get_parcel_dimensions(town, address, acres)
+    if not parcel.get("found"):
+        logger.error(f"Parcel not found: {address}, {town}")
+        return {
+            "status": "ERROR",
+            "error": "Parcel not found in GeoLibrary",
+            "output_file": None,
+        }
+
+    rings = parcel.get("rings", [])
+    corners = parcel.get("corners", [])
+    if not rings or not corners:
+        logger.error("No geometry returned from GeoLibrary")
+        return {
+            "status": "ERROR",
+            "error": "No boundary geometry",
+            "output_file": None,
+        }
+
+    # Use exterior ring (first ring) as the parcel boundary
+    exterior_ring = rings[0]
+
+    # Convert from meters to feet
+    ring_ft = [[pt[0] * 3.28084, pt[1] * 3.28084] for pt in exterior_ring]
+    corners_ft = [[pt[0] * 3.28084, pt[1] * 3.28084] for pt in corners]
+
+    # Find bounding box and center
+    xs = [pt[0] for pt in ring_ft]
+    ys = [pt[1] for pt in ring_ft]
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    center_x = (min_x + max_x) / 2
+    center_y = (min_y + max_y) / 2
+    width_ft = max_x - min_x
+    height_ft = max_y - min_y
+
+    # Plan view scale: 1" = 10 ft
+    plan_scale_ft_per_in = 10.0
+
+    # Calculate image dimensions (with margins)
+    margin_px = 60
+    scale_px_per_ft = dpi / plan_scale_ft_per_in
+    polygon_width_px = int(width_ft * scale_px_per_ft)
+    polygon_height_px = int(height_ft * scale_px_per_ft)
+
+    width_px = polygon_width_px + 2 * margin_px
+    height_px = polygon_height_px + 2 * margin_px
+
+    # Create image
+    img = Image.new("RGB", (width_px, height_px), color="white")
+    draw = ImageDraw.Draw(img)
+
+    # Load fonts
+    try:
+        font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
+        font_md = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 10)
+        font_lg = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
+    except OSError:
+        font_sm = font_md = font_lg = ImageFont.load_default()
+
+    # Convert feet coordinates to pixels (with local origin at center)
+    def feet_to_px(x_ft, y_ft):
+        px_x = margin_px + polygon_width_px // 2 + int((x_ft - center_x) * scale_px_per_ft)
+        px_y = margin_px + polygon_height_px // 2 - int((y_ft - center_y) * scale_px_per_ft)  # Y inverted for screen coords
+        return (px_x, px_y)
+
+    # ── Draw parcel boundary polygon ──────────────────────────────────
+    polygon_pts = [feet_to_px(pt[0], pt[1]) for pt in ring_ft]
+    draw.polygon(polygon_pts, outline="darkblue", width=3, fill="lightyellow")
+
+    # ── Draw corner/pin markers ──────────────────────────────────────
+    corner_radius = 5
+    for i, corner_ft in enumerate(corners_ft):
+        cx, cy = feet_to_px(corner_ft[0], corner_ft[1])
+        # Draw small circle for corner
+        draw.ellipse([(cx - corner_radius, cy - corner_radius),
+                      (cx + corner_radius, cy + corner_radius)],
+                     outline="red", width=2, fill="lightyellow")
+        # Label corner number
+        draw.text((cx + 8, cy - 5), str(i + 1), fill="red", font=font_sm)
+
+    # ── Dimension edges ──────────────────────────────────────────────
+    for i in range(len(polygon_pts)):
+        pt1_ft = ring_ft[i]
+        pt2_ft = ring_ft[(i + 1) % len(ring_ft)]
+        pt1_px = polygon_pts[i]
+        pt2_px = polygon_pts[(i + 1) % len(polygon_pts)]
+
+        # Calculate edge distance in feet
+        dx_ft = pt2_ft[0] - pt1_ft[0]
+        dy_ft = pt2_ft[1] - pt1_ft[1]
+        edge_length_ft = (dx_ft ** 2 + dy_ft ** 2) ** 0.5
+
+        # Mid-point for label
+        mid_px = ((pt1_px[0] + pt2_px[0]) // 2, (pt1_px[1] + pt2_px[1]) // 2)
+
+        # Draw dimension line (offset from edge)
+        offset_px = 15
+        # Perpendicular direction (rotated 90 degrees)
+        dx_px = pt2_px[0] - pt1_px[0]
+        dy_px = pt2_px[1] - pt1_px[1]
+        length_px = (dx_px ** 2 + dy_px ** 2) ** 0.5
+        if length_px > 0:
+            norm_x = -dy_px / length_px
+            norm_y = dx_px / length_px
+            offset_x = norm_x * offset_px
+            offset_y = norm_y * offset_px
+
+            dim_pt1 = (pt1_px[0] + offset_x, pt1_px[1] + offset_y)
+            dim_pt2 = (pt2_px[0] + offset_x, pt2_px[1] + offset_y)
+            draw.line([dim_pt1, dim_pt2], fill="darkgreen", width=1)
+
+            # Label with distance
+            label = f"{edge_length_ft:.0f}'"
+            draw.text((mid_px[0] + offset_x // 2, mid_px[1] + offset_y // 2), label, fill="darkgreen", font=font_sm)
+
+    # ── Add lot number and parcel info ───────────────────────────────
+    lot_text = f"Map {map_num}, Lot {lot_num}"
+    area_ac = parcel.get("area_ac", 0)
+    area_text = f"{area_ac} acres"
+
+    info_y = margin_px + 10
+    draw.text((margin_px, info_y), lot_text, fill="black", font=font_md)
+    draw.text((margin_px, info_y + 20), area_text, fill="darkblue", font=font_sm)
+
+    # ── Title ────────────────────────────────────────────────────────
+    client = fields.get("owner_name", "HHE-200")
+    address = fields.get("site_address", "")
+    title = f"BOUNDARY: {client} - {address}"
+    draw.text((margin_px, 5), title, fill="black", font=font_lg)
+
+    # Scale info
+    scale_text = f"Plan View: 1\"={plan_scale_ft_per_in}ft"
+    draw.text((margin_px, height_px - 25), scale_text, fill="gray", font=font_sm)
+
+    # ── Save ─────────────────────────────────────────────────────────
+    img.save(str(output_path))
+    logger.info(f"✓ Boundary rendered: {output_path} ({width_px}x{height_px}px)")
+
+    return {
+        "status": "RENDERED",
+        "output_file": output_path,
+        "dimensions": {"width_px": width_px, "height_px": height_px},
+        "parcel": {
+            "map_bk_lot": parcel.get("map_bk_lot"),
+            "area_ac": parcel.get("area_ac"),
+            "corners": len(corners_ft),
+        },
+    }
+
+
 if __name__ == "__main__":
     from sheet_parser import RAW_ROW, ROBERTS_ROW, parse_sheet_row
 
@@ -446,14 +623,24 @@ if __name__ == "__main__":
 
     # Marquis (no backfill)
     print("=" * 70)
-    print("MARQUIS (26-018) - No backfill")
+    print("MARQUIS (26-018) - Boundary + Cross-section + Soil")
     print("=" * 70)
     fields_marquis = parse_sheet_row(RAW_ROW)
+
+    # Boundary
+    output_boundary_marquis = Path("/home/workspace/OpenEvaluator/boundary_marquis.png")
+    result_boundary_marquis = render_boundary_layer(fields_marquis, output_boundary_marquis)
+    print(f"Boundary: {result_boundary_marquis['status']}")
+    if result_boundary_marquis['status'] == 'RENDERED':
+        print(f"  Parcel: {result_boundary_marquis['parcel']}")
+
+    # Cross-section
     output_cs_marquis = Path("/home/workspace/OpenEvaluator/cross_section_marquis_v2.png")
     result_marquis = render_cross_section(fields_marquis, output_cs_marquis)
     print(f"Cross-section: {result_marquis['status']}")
     print(f"Backfill: upslope={result_marquis['backfill']['upslope_inches']}\", downslope={result_marquis['backfill']['downslope_inches']}\"")
 
+    # Soil profile
     output_soil_marquis = Path("/home/workspace/OpenEvaluator/soil_profile_marquis.png")
     result_soil_marquis = render_soil_profile(fields_marquis, output_soil_marquis)
     print(f"Soil profile: {result_soil_marquis['status']}")
