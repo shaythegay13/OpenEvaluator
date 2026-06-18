@@ -270,6 +270,175 @@ def render_cross_section(
     }
 
 
+def render_soil_profile(
+    fields: Dict[str, str],
+    output_path: Path,
+    dpi: int = 96,
+) -> Dict[str, Any]:
+    """
+    Render a soil profile grid for page 3 lower half.
+
+    Inputs (from sheet_parser):
+    - soil_layers: list of dicts with 'depth' (str like "0-3 in") and 'soil' (description)
+    - water_table_depth_hole1: water table depth in inches
+    - owner_name: client name
+    - site_address: property address
+
+    Returns:
+    {
+        "status": "RENDERED" | "ERROR",
+        "output_file": Path,
+        "dimensions": {"width_px": int, "height_px": int},
+        "soil_layers": [...],
+    }
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    # Parse soil layers
+    soil_layers = fields.get("soil_layers", [])
+    if not soil_layers:
+        logger.warning("No soil layers found; rendering empty profile")
+        soil_layers = []
+
+    water_table_depth = float(fields.get("water_table_depth_hole1", "24") or "24")
+
+    # ── Calculate drawing dimensions ────────────────────────────────────
+    # Soil profile grid: 0 to 48+ inches depth
+    max_depth = 48
+    depth_per_inch_px = 8  # pixels per depth inch (for a 48" deep profile)
+    total_depth_px = max_depth * depth_per_inch_px
+
+    # Layout dimensions
+    left_margin_px = 60
+    right_margin_px = 40
+    top_margin_px = 40
+    bottom_margin_px = 40
+    grid_width_px = 200  # Width of the soil layer display area
+
+    width_px = left_margin_px + grid_width_px + right_margin_px
+    height_px = top_margin_px + total_depth_px + bottom_margin_px
+
+    # ── Create image ────────────────────────────────────────────────────
+    img = Image.new("RGB", (width_px, height_px), color="white")
+    draw = ImageDraw.Draw(img)
+
+    # Load fonts
+    try:
+        font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
+        font_md = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 10)
+    except OSError:
+        font_sm = font_md = ImageFont.load_default()
+
+    # ── Draw depth scale (left side) ────────────────────────────────────
+    grid_left = left_margin_px
+    grid_right = left_margin_px + grid_width_px
+    grid_top = top_margin_px
+    grid_bottom = grid_top + total_depth_px
+
+    # Depth tick marks and labels (every 6 inches)
+    for depth_in in range(0, max_depth + 1, 6):
+        y_px = grid_top + depth_in * depth_per_inch_px
+        # Tick mark
+        draw.line([(grid_left - 10, y_px), (grid_left, y_px)], fill="black", width=1)
+        # Depth label
+        label = f"{depth_in}\""
+        draw.text((grid_left - 35, y_px - 4), label, fill="black", font=font_sm)
+
+    # ── Draw grid ───────────────────────────────────────────────────────
+    # Vertical lines (left and right borders)
+    draw.line([(grid_left, grid_top), (grid_left, grid_bottom)], fill="black", width=2)
+    draw.line([(grid_right, grid_top), (grid_right, grid_bottom)], fill="black", width=2)
+
+    # Horizontal lines (every 6 inches)
+    for depth_in in range(0, max_depth + 1, 6):
+        y_px = grid_top + depth_in * depth_per_inch_px
+        draw.line([(grid_left, y_px), (grid_right, y_px)], fill="lightgray", width=1)
+
+    # ── Draw soil layers ────────────────────────────────────────────────
+    # Parse depth ranges from soil_layers
+    colors = ["#D2B48C", "#8B7355", "#A0826D", "#696969", "#4B5C6F"]
+    color_idx = 0
+
+    for layer in soil_layers:
+        depth_str = layer.get("depth", "unknown")
+        soil_desc = layer.get("soil", "").strip()
+
+        # Parse depth range (e.g., "0-3 in" or "0-24 in")
+        if depth_str and depth_str != "unknown" and "-" in depth_str:
+            try:
+                parts = depth_str.replace(" in", "").split("-")
+                depth_top = float(parts[0])
+                depth_bottom = float(parts[1])
+            except (ValueError, IndexError):
+                continue
+        else:
+            continue
+
+        # Convert to pixels
+        y_top = grid_top + depth_top * depth_per_inch_px
+        y_bottom = grid_top + depth_bottom * depth_per_inch_px
+
+        # Draw soil layer box
+        color = colors[color_idx % len(colors)]
+        draw.rectangle(
+            [(grid_left + 2, y_top), (grid_right - 2, y_bottom)],
+            outline="black",
+            fill=color,
+            width=1,
+        )
+
+        # Label with soil description
+        if soil_desc:
+            # Wrap text to fit in the box
+            lines = soil_desc.split()
+            current_line = ""
+            text_y = y_top + 3
+            max_width = grid_width_px - 8
+
+            for word in lines:
+                test_line = current_line + (" " if current_line else "") + word
+                # Rough estimate: font_sm is ~8px per char
+                if len(test_line) * 5 > max_width:
+                    if current_line:
+                        draw.text((grid_left + 4, text_y), current_line, fill="black", font=font_sm)
+                        text_y += 10
+                    current_line = word
+                else:
+                    current_line = test_line
+
+            if current_line:
+                draw.text((grid_left + 4, text_y), current_line, fill="black", font=font_sm)
+
+        color_idx += 1
+
+    # ── Draw water table indicator ──────────────────────────────────────
+    if water_table_depth > 0 and water_table_depth < max_depth:
+        water_y = grid_top + water_table_depth * depth_per_inch_px
+        draw.line([(grid_left - 15, water_y), (grid_right + 15, water_y)], fill="cyan", width=3)
+        draw.text((grid_right + 5, water_y - 8), "WT", fill="cyan", font=font_sm)
+
+    # ── Title ───────────────────────────────────────────────────────────
+    client = fields.get("owner_name", "HHE-200")
+    address = fields.get("site_address", "")
+    title = f"SOIL PROFILE: {client} - {address}"
+    draw.text((left_margin_px, 10), title, fill="black", font=font_md)
+
+    # Depth label
+    draw.text((grid_left - 35, grid_top - 20), "Depth (in)", fill="black", font=font_sm)
+
+    # ── Save ────────────────────────────────────────────────────────────
+    img.save(str(output_path))
+    logger.info(f"✓ Soil profile rendered: {output_path} ({width_px}x{height_px}px)")
+
+    return {
+        "status": "RENDERED",
+        "output_file": output_path,
+        "dimensions": {"width_px": width_px, "height_px": height_px},
+        "soil_layers": soil_layers,
+        "water_table_depth": water_table_depth,
+    }
+
+
 if __name__ == "__main__":
     from sheet_parser import RAW_ROW, ROBERTS_ROW, parse_sheet_row
 
@@ -280,19 +449,27 @@ if __name__ == "__main__":
     print("MARQUIS (26-018) - No backfill")
     print("=" * 70)
     fields_marquis = parse_sheet_row(RAW_ROW)
-    output_marquis = Path("/home/workspace/OpenEvaluator/cross_section_marquis_v2.png")
-    result_marquis = render_cross_section(fields_marquis, output_marquis)
-    print(f"Status: {result_marquis['status']}")
+    output_cs_marquis = Path("/home/workspace/OpenEvaluator/cross_section_marquis_v2.png")
+    result_marquis = render_cross_section(fields_marquis, output_cs_marquis)
+    print(f"Cross-section: {result_marquis['status']}")
     print(f"Backfill: upslope={result_marquis['backfill']['upslope_inches']}\", downslope={result_marquis['backfill']['downslope_inches']}\"")
-    print(f"Scales: {result_marquis['scales']}\n")
+
+    output_soil_marquis = Path("/home/workspace/OpenEvaluator/soil_profile_marquis.png")
+    result_soil_marquis = render_soil_profile(fields_marquis, output_soil_marquis)
+    print(f"Soil profile: {result_soil_marquis['status']}")
+    print(f"Layers: {len(result_soil_marquis['soil_layers'])} found\n")
 
     # Roberts (with backfill)
     print("=" * 70)
     print("ROBERTS (26-123) - With backfill 4\"/10\"")
     print("=" * 70)
     fields_roberts = parse_sheet_row(ROBERTS_ROW)
-    output_roberts = Path("/home/workspace/OpenEvaluator/cross_section_roberts_v2.png")
-    result_roberts = render_cross_section(fields_roberts, output_roberts)
-    print(f"Status: {result_roberts['status']}")
+    output_cs_roberts = Path("/home/workspace/OpenEvaluator/cross_section_roberts_v2.png")
+    result_roberts = render_cross_section(fields_roberts, output_cs_roberts)
+    print(f"Cross-section: {result_roberts['status']}")
     print(f"Backfill: upslope={result_roberts['backfill']['upslope_inches']}\", downslope={result_roberts['backfill']['downslope_inches']}\"")
-    print(f"Scales: {result_roberts['scales']}\n")
+
+    output_soil_roberts = Path("/home/workspace/OpenEvaluator/soil_profile_roberts.png")
+    result_soil_roberts = render_soil_profile(fields_roberts, output_soil_roberts)
+    print(f"Soil profile: {result_soil_roberts['status']}")
+    print(f"Layers: {len(result_soil_roberts['soil_layers'])} found\n")
