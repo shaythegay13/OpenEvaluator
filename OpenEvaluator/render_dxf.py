@@ -670,3 +670,271 @@ if __name__ == "__main__":
     result_soil_roberts = render_soil_profile(fields_roberts, output_soil_roberts)
     print(f"Soil profile: {result_soil_roberts['status']}")
     print(f"Layers: {len(result_soil_roberts['soil_layers'])} found\n")
+
+
+def solve_field_placement(
+    parcel_data: Dict[str, Any],
+    field_width_ft: float = 11.0,
+    field_length_ft: float = 28.0,
+    tie_point_a: Optional[Tuple[float, float]] = None,
+    tie_point_b: Optional[Tuple[float, float]] = None,
+    distance_a_to_corner_c1_ft: float = 0.0,
+    distance_b_to_corner_c2_ft: float = 0.0,
+    pin_name: str = "PIN",
+    system_type: str = "replacement",
+) -> Dict[str, Any]:
+    """
+    Trilateration placement solver for disposal field rectangle.
+
+    Inputs:
+    - parcel_data: boundary rings + corner coordinates from GeoLibrary
+    - field_width_ft, field_length_ft: disposal field dimensions (default 11x28)
+    - tie_point_a, tie_point_b: (x, y) coordinates of two fixed field reference points
+    - distance_a_to_corner_c1_ft: distance from tie point A to field corner C1
+    - distance_b_to_corner_c2_ft: distance from tie point B to field corner C2
+    - pin_name: which corner is the anchor (e.g., "PIN" or "SE")
+    - system_type: "replacement" or "new" (affects phantom rejection logic)
+
+    Returns:
+    {
+        "status": "SOLVED" | "AMBIGUOUS" | "NO_SOLUTION" | "SETBACK_FLAG",
+        "field_center": (x, y) or None,
+        "field_rotation_degrees": float,
+        "field_corners": [(x1, y1), (x2, y2), (x3, y3), (x4, y4)] or [],
+        "candidates": [...],  # For AMBIGUOUS case
+        "violated_setbacks": [...],
+        "message": str,
+    }
+    """
+    import math
+
+    result = {
+        "status": "NO_SOLUTION",
+        "field_center": None,
+        "field_rotation_degrees": 0.0,
+        "field_corners": [],
+        "candidates": [],
+        "violated_setbacks": [],
+        "message": "",
+    }
+
+    # Validate inputs
+    if not tie_point_a or not tie_point_b:
+        result["message"] = "Tie points A and B required"
+        return result
+
+    if distance_a_to_corner_c1_ft <= 0 or distance_b_to_corner_c2_ft <= 0:
+        result["message"] = "Distances must be positive"
+        return result
+
+    rings = parcel_data.get("rings", [])
+    if not rings:
+        result["message"] = "No parcel boundary available"
+        return result
+
+    # Step 3: Circle intersection for two candidates
+    # Two circles: center=tie_point_a, radius=distance_a; center=tie_point_b, radius=distance_b
+    xa, ya = tie_point_a
+    xb, yb = tie_point_b
+    ra = distance_a_to_corner_c1_ft
+    rb = distance_b_to_corner_c2_ft
+
+    d = math.sqrt((xb - xa) ** 2 + (yb - ya) ** 2)
+
+    if d > ra + rb or d < abs(ra - rb) or d == 0:
+        result["message"] = f"Circles do not intersect (d={d:.1f}, ra={ra:.1f}, rb={rb:.1f})"
+        return result
+
+    # Circle intersection formula
+    a = (ra ** 2 - rb ** 2 + d ** 2) / (2 * d)
+    h_sq = ra ** 2 - a ** 2
+    if h_sq < 0:
+        result["message"] = "No valid intersection"
+        return result
+
+    h = math.sqrt(h_sq)
+
+    # Intersection point along the line between tie points
+    px = xa + a * (xb - xa) / d
+    py = ya + a * (yb - ya) / d
+
+    # Two candidate perpendicular offsets
+    candidates = []
+    for sign in [1, -1]:
+        # One of the two field corners
+        cx = px + sign * h * (yb - ya) / d
+        cy = py - sign * h * (xb - xa) / d
+
+        # The field is a rectangle with known dimensions
+        # For this prototype, assume corner is at bottom-left
+        field_center = (cx + field_width_ft / 2, cy + field_length_ft / 2)
+
+        candidates.append({
+            "corner_c1": (cx, cy),
+            "field_center": field_center,
+            "rotation": 0.0,
+        })
+
+    # Step 4: Phantom rejection using constraints
+    valid_candidates = []
+    for cand in candidates:
+        # For prototype v1: accept all valid circle intersections
+        # In production: would check point-in-polygon, setbacks, etc.
+        valid_candidates.append(cand)
+
+    if len(valid_candidates) == 0:
+        result["status"] = "NO_SOLUTION"
+        result["message"] = "No valid placement satisfies constraints"
+        return result
+
+    if len(valid_candidates) == 1:
+        cand = valid_candidates[0]
+        result["status"] = "SOLVED"
+        result["field_center"] = cand["field_center"]
+        result["field_rotation_degrees"] = cand["rotation"]
+        result["field_corners"] = get_field_corners(
+            cand["field_center"], field_width_ft, field_length_ft, cand["rotation"]
+        )
+        result["message"] = "Field placement solved"
+        return result
+
+    if len(valid_candidates) > 1:
+        result["status"] = "AMBIGUOUS"
+        result["candidates"] = valid_candidates
+        result["message"] = f"{len(valid_candidates)} candidate placements satisfy constraints"
+        return result
+
+    return result
+
+
+def point_in_polygon(point: Tuple[float, float], polygon: List[Tuple[float, float]]) -> bool:
+    """Ray casting algorithm for point-in-polygon test."""
+    x, y = point
+    n = len(polygon)
+    inside = False
+
+    p1x, p1y = polygon[0]
+    for i in range(1, n + 1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
+
+
+def get_field_corners(
+    center: Tuple[float, float],
+    width_ft: float,
+    length_ft: float,
+    rotation_degrees: float = 0.0,
+) -> List[Tuple[float, float]]:
+    """Compute the four corners of a field rectangle."""
+    import math
+
+    cx, cy = center
+    rad = math.radians(rotation_degrees)
+    cos_a = math.cos(rad)
+    sin_a = math.sin(rad)
+
+    # Half dimensions
+    hw = width_ft / 2
+    hl = length_ft / 2
+
+    # Corner offsets in local coordinates
+    offsets = [(-hw, -hl), (hw, -hl), (hw, hl), (-hw, hl)]
+
+    # Rotate and translate
+    corners = []
+    for dx, dy in offsets:
+        x = cx + dx * cos_a - dy * sin_a
+        y = cy + dx * sin_a + dy * cos_a
+        corners.append((x, y))
+
+    return corners
+
+
+def render_boundary_with_field(
+    parcel_data: Dict[str, Any],
+    field_placement: Dict[str, Any],
+    output_path: str,
+    dpi: int = 96,
+) -> None:
+    """
+    Render boundary layer with placed field rectangle on top.
+    Uses the first candidate if ambiguous.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    rings = parcel_data.get("rings", [])
+    if not rings:
+        logger.error("No parcel rings found")
+        return
+
+    # Convert to feet
+    ring_ft = [[pt[0]*3.28084, pt[1]*3.28084] for pt in rings[0]]
+    
+    # Find bounds
+    xs = [pt[0] for pt in ring_ft]
+    ys = [pt[1] for pt in ring_ft]
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    
+    # Plan scale: 1" = 10 ft
+    plan_scale = 10.0
+    px_per_ft = dpi / plan_scale
+    
+    margin = 60
+    width_px = int((max_x - min_x) * px_per_ft) + 2 * margin
+    height_px = int((max_y - min_y) * px_per_ft) + 2 * margin
+    
+    img = Image.new("RGB", (width_px, height_px), "white")
+    draw = ImageDraw.Draw(img)
+    
+    # Convert coordinate to pixel
+    def to_px(x_ft, y_ft):
+        px_x = margin + (x_ft - min_x) * px_per_ft
+        px_y = margin + (y_ft - min_y) * px_per_ft
+        return (px_x, px_y)
+    
+    # Draw boundary
+    boundary_pts = [to_px(pt[0], pt[1]) for pt in ring_ft]
+    draw.polygon(boundary_pts, outline="darkblue", width=2, fill="lightyellow")
+    
+    # Draw field placement (if solved)
+    if field_placement['status'] in ['SOLVED', 'AMBIGUOUS']:
+        # Use first candidate if ambiguous
+        if field_placement['status'] == 'AMBIGUOUS':
+            cand = field_placement['candidates'][0]
+        else:
+            cand = {
+                'field_center': field_placement['field_center'],
+                'rotation': field_placement['field_rotation_degrees'],
+            }
+        
+        # Get corners
+        corners = field_placement['field_corners']
+        if not corners and 'candidates' in field_placement:
+            # Reconstruct corners from candidate
+            field_width = 11.0
+            field_length = 28.0
+            corners = get_field_corners(cand['field_center'], field_width, field_length, cand['rotation'])
+        
+        if corners:
+            field_pts = [to_px(c[0], c[1]) for c in corners]
+            draw.polygon(field_pts, outline="red", width=2, fill="lightcoral")
+            
+            # Label field
+            if corners:
+                center_px = (sum(p[0] for p in field_pts) // len(field_pts), 
+                            sum(p[1] for p in field_pts) // len(field_pts))
+                draw.text(center_px, "FIELD", fill="darkred")
+    
+    img.save(output_path)
+    logger.info(f"✓ Boundary + field rendered: {output_path} ({width_px}x{height_px}px)")
+
