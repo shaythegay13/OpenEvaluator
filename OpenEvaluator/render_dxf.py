@@ -170,29 +170,30 @@ def render_cross_section(
     draw.line([(x_left, fg_y), (x_right, fg_y)], fill="brown", width=3)
     draw.text((x_left + 5, fg_y - 12), "Grade", fill="brown", font=font_sm)
 
-    # Top of pipe
+    # Top of pipe (positioned at field position 3ft)
     top_pipe_y = elev_to_px(top_of_pipe)
-    draw.line([(horiz_to_px(2), top_pipe_y), (horiz_to_px(4), top_pipe_y)], fill="blue", width=2)
-    draw.text((horiz_to_px(2), top_pipe_y - 12), "Top Pipe", fill="blue", font=font_sm)
+    draw.line([(horiz_to_px(3), top_pipe_y), (horiz_to_px(5), top_pipe_y)], fill="blue", width=2)
+    draw.text((horiz_to_px(3), top_pipe_y - 12), "Top Pipe", fill="blue", font=font_sm)
 
-    # Bottom of device
+    # Bottom of device (positioned at field position 5.5ft)
     bottom_device_y = elev_to_px(bottom_of_device)
-    draw.line([(horiz_to_px(4.5), bottom_device_y), (horiz_to_px(6.5), bottom_device_y)], fill="purple", width=2)
-    draw.text((horiz_to_px(4.5), bottom_device_y - 12), "Bot Device", fill="purple", font=font_sm)
+    draw.line([(horiz_to_px(5.5), bottom_device_y), (horiz_to_px(7.5), bottom_device_y)], fill="purple", width=2)
+    draw.text((horiz_to_px(5.5), bottom_device_y - 12), "Bot Device", fill="purple", font=font_sm)
 
-    # Bottom of field
+    # Bottom of field (positioned at field position 8ft)
     bottom_field_y = elev_to_px(bottom_of_field)
-    draw.line([(horiz_to_px(7), bottom_field_y), (horiz_to_px(9), bottom_field_y)], fill="darkgreen", width=2)
-    draw.text((horiz_to_px(7), bottom_field_y - 12), "Bot Field", fill="darkgreen", font=font_sm)
+    draw.line([(horiz_to_px(8), bottom_field_y), (horiz_to_px(10), bottom_field_y)], fill="darkgreen", width=2)
+    draw.text((horiz_to_px(8), bottom_field_y - 12), "Bot Field", fill="darkgreen", font=font_sm)
 
-    # Water table
+    # Water table (spans full width)
     water_y = elev_to_px(water_table_elev)
     draw.line([(x_left, water_y), (x_right, water_y)], fill="cyan", width=2)
     draw.text((x_left + 5, water_y + 3), "Water Table", fill="cyan", font=font_sm)
 
     # ── Draw field disposal area box ────────────────────────────────────
-    field_left = horiz_to_px(3)
-    field_right = horiz_to_px(8)
+    # Field is 11 feet wide, drawn at horizontal scale
+    field_left = horiz_to_px(0)
+    field_right = horiz_to_px(field_width_ft)
     field_top = top_pipe_y
     field_bottom = bottom_field_y
 
