@@ -1,9 +1,0 @@
-HHE-200 Test Suite Results
-Generated: 4/4
-
-Row 2: 26-018 (Kristen Marquis)
-  Example PDFs: 7
-Row 3: Synthetic 1
-Row 4: 26-123
-  Example PDFs: 4
-Row 5: Synthetic 2
