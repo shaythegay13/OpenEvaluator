@@ -651,11 +651,21 @@ if __name__ == "__main__":
     print("ROBERTS (26-123) - With backfill 4\"/10\"")
     print("=" * 70)
     fields_roberts = parse_sheet_row(ROBERTS_ROW)
+
+    # Boundary
+    output_boundary_roberts = Path("/home/workspace/OpenEvaluator/boundary_roberts.png")
+    result_boundary_roberts = render_boundary_layer(fields_roberts, output_boundary_roberts)
+    print(f"Boundary: {result_boundary_roberts['status']}")
+    if result_boundary_roberts['status'] == 'RENDERED':
+        print(f"  Parcel: {result_boundary_roberts['parcel']}")
+
+    # Cross-section
     output_cs_roberts = Path("/home/workspace/OpenEvaluator/cross_section_roberts_v2.png")
     result_roberts = render_cross_section(fields_roberts, output_cs_roberts)
     print(f"Cross-section: {result_roberts['status']}")
     print(f"Backfill: upslope={result_roberts['backfill']['upslope_inches']}\", downslope={result_roberts['backfill']['downslope_inches']}\"")
 
+    # Soil profile
     output_soil_roberts = Path("/home/workspace/OpenEvaluator/soil_profile_roberts.png")
     result_soil_roberts = render_soil_profile(fields_roberts, output_soil_roberts)
     print(f"Soil profile: {result_soil_roberts['status']}")
