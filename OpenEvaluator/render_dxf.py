@@ -972,9 +972,29 @@ def solve_field_placement_from_sheet(
     # Tie-point placement: offset from pin at specified bearings
     import math
 
-    # Use provided bearings or defaults
-    bearing_a = bearing_a_degrees if bearing_a_degrees is not None else 45.0
-    bearing_b = bearing_b_degrees if bearing_b_degrees is not None else 135.0
+    # Extract bearings from corner labels if not explicitly provided
+    if bearing_a_degrees is None:
+        # Infer bearing from the corner label
+        corner_to_bearing_map = {
+            "NE": 45.0, "northeast": 45.0,
+            "SE": 135.0, "southeast": 135.0,
+            "SW": 225.0, "southwest": 225.0,
+            "NW": 315.0, "northwest": 315.0,
+        }
+        bearing_a = corner_to_bearing_map.get(tp_a_corner.upper(), 45.0)
+    else:
+        bearing_a = bearing_a_degrees
+
+    if bearing_b_degrees is None:
+        corner_to_bearing_map = {
+            "NE": 45.0, "northeast": 45.0,
+            "SE": 135.0, "southeast": 135.0,
+            "SW": 225.0, "southwest": 225.0,
+            "NW": 315.0, "northwest": 315.0,
+        }
+        bearing_b = corner_to_bearing_map.get(tp_b_corner.upper(), 135.0)
+    else:
+        bearing_b = bearing_b_degrees
 
     # Place tie point A at specified bearing and distance from pin
     angle_a = math.radians(bearing_a)
