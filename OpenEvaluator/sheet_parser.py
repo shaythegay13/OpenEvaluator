@@ -63,6 +63,8 @@ RAW_ROW: Dict[str, str] = {
         "Pin/Reference: iron rod, 35 feet\n"
         "field to well 100 feet minimum"
     ),
+    "Foundation Type": "Yes, full foundation/frost walls",
+    "Requesting any variances?": "none",
     "Elevation reference point (ERP) and elevations (if known)": (
         "ERP = nail set 12 inches above grade in 6\" maple tree, "
         "finish grade elevation = 0\", top of pipe = -12\", "
@@ -108,6 +110,8 @@ ROBERTS_ROW: Dict[str, str] = {
         "field to well 120 feet, field to house 25 feet, "
         "tank to field 8 feet, upslope backfill 4 inches, downslope backfill 10 inches"
     ),
+    "Foundation Type": "Yes, slab/posts",
+    "Requesting any variances?": "well setback",
     "Elevation reference point (ERP) and elevations (if known)": (
         "ERP = finish grade, finish grade elevation = 0\", top of pipe = -8\", "
         'bottom of proprietary device = -18", bottom of disposal area = -28"'
@@ -517,6 +521,52 @@ def parse_septic_tank(raw: str) -> Dict[str, str]:
     }
 
 
+def parse_foundation_type(raw: str) -> Dict[str, str]:
+    """
+    Parse foundation type from form response.
+    
+    Input: 'Yes, full foundation/frost walls' or 'Yes, slab/posts' or 'No'
+    Output: foundation_type = 'full' | 'slab' | 'none'
+    """
+    if not raw:
+        return {"foundation_type": ""}
+    
+    raw_lower = raw.lower().strip()
+    if "full foundation" in raw_lower or "frost wall" in raw_lower:
+        return {"foundation_type": "full"}
+    elif "slab" in raw_lower or "post" in raw_lower:
+        return {"foundation_type": "slab"}
+    elif "no" in raw_lower or "none" in raw_lower:
+        return {"foundation_type": "none"}
+    else:
+        return {"foundation_type": raw}
+
+
+def parse_variance_types(raw: str) -> Dict[str, str]:
+    """
+    Parse variance declarations from form response.
+    
+    Input: 'none' or comma-separated list like 'well setback, building setback'
+    Output: variance_types = list of variance types declared
+           variance_types_str = comma-separated string for storage
+    """
+    if not raw:
+        return {"variance_types": "", "variance_types_list": []}
+    
+    raw_lower = raw.lower().strip()
+    if raw_lower == "none" or raw_lower == "":
+        return {"variance_types": "", "variance_types_list": []}
+    
+    # Split on comma, strip each, keep as list
+    types = [t.strip() for t in raw.split(",")]
+    types = [t for t in types if t and t.lower() != "none"]  # Filter empty and 'none'
+    
+    return {
+        "variance_types": ", ".join(types),
+        "variance_types_list": types,
+    }
+
+
 def derive_missing(fields: Dict[str, str]) -> Dict[str, str]:
     """
     Fill all remaining fields defined in field_map.yaml that are still
@@ -735,7 +785,15 @@ def parse_sheet_row(row: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     dist = parse_distances(raw.get("Key distances between features", ""))
     fields.update(dist)
 
-    # ── 17. Submission timestamp ─────────────────────────────────────────
+    # ── 17. Foundation type ───────────────────────────────────────────────
+    ft = parse_foundation_type(raw.get("Foundation Type", ""))
+    fields.update(ft)
+
+    # ── 18. Variance declarations ─────────────────────────────────────────
+    var = parse_variance_types(raw.get("Requesting any variances?", ""))
+    fields.update(var)
+
+    # ── 19. Submission timestamp ─────────────────────────────────────────
     fields["submission_timestamp"] = raw.get("Timestamp", "").strip()
     # Date from timestamp
     date_m = re.search(r"(\d+)/(\d+)/(\d+)", raw.get("Timestamp", ""))
@@ -746,13 +804,13 @@ def parse_sheet_row(row: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         fields["evaluator_date_page3"]    = f"{month}/{day}/{year}"
         fields["se_date_page6"]           = f"{month}/{day}/{year}"
 
-    # ── 18. Drive URL ────────────────────────────────────────────────────
+    # ── 20. Drive URL ────────────────────────────────────────────────────
     fields["uploads_url"] = raw.get("Uploads", "").strip()
 
-    # ── 19. Special notes ────────────────────────────────────────────────
+    # ── 21. Special notes ────────────────────────────────────────────────
     fields["special_notes"] = raw.get("Special Notes", "").strip()
 
-    # ── 20. Derive all remaining fields ───────────────────────────────────
+    # ── 22. Derive all remaining fields ───────────────────────────────────
     fields = derive_missing(fields)
 
     return fields
