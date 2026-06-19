@@ -172,3 +172,45 @@ if __name__ == "__main__":
     print(f"Status: {result_r['status']}")
     print(f"Notes: {result_r['notes']}")
     print(f"Setbacks: {result_r['setbacks']}")
+
+
+def integrate_setback_verification(
+    fields: Dict[str, Any],
+    placement_result: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Integrate setback verification into placement result.
+    
+    Takes a placement_solver result and adds setback verification,
+    returning a combined status.
+    
+    Args:
+        fields: Parsed form fields
+        placement_result: Result from solve_field_placement_from_sheet()
+    
+    Returns:
+        Combined result with both placement and setback data
+    """
+    
+    # Always include placement data
+    combined = dict(placement_result)
+    
+    # If placement is SOLVED, verify setbacks
+    if placement_result.get("status") == "SOLVED":
+        setback_result = verify_setbacks(fields, placement_result)
+        combined["setback_verification"] = setback_result
+        
+        # Final status depends on setbacks
+        if setback_result["status"] == "FLAG_SETBACK":
+            combined["final_status"] = "FLAG_SETBACK"
+            combined["needs_correction"] = True
+            combined["correction_reason"] = setback_result["notes"]
+        else:
+            combined["final_status"] = "READY_FOR_REVIEW"
+            combined["needs_correction"] = False
+    else:
+        # Placement not SOLVED, can't verify setbacks
+        combined["final_status"] = placement_result["status"]
+        combined["setback_verification"] = None
+    
+    return combined
