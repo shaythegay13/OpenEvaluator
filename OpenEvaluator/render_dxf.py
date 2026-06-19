@@ -22,7 +22,7 @@ if not logger.handlers:
 def render_cross_section(
     fields: Dict[str, str],
     output_path: Path,
-    dpi: int = 96,
+    dpi: int = 300,
 ) -> Dict[str, Any]:
     """
     Render a disposal field cross-section at proper vertical/horizontal scales.
@@ -130,10 +130,12 @@ def render_cross_section(
     img = Image.new("RGB", (width_px, height_px), color="white")
     draw = ImageDraw.Draw(img)
 
-    # Load font
+    # Load font (scale with DPI)
+    font_size_sm = int(8 * dpi / 96)
+    font_size_md = int(10 * dpi / 96)
     try:
-        font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
-        font_md = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 10)
+        font_sm = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size_sm)
+        font_md = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size_md)
     except OSError:
         font_sm = font_md = ImageFont.load_default()
 
@@ -273,7 +275,7 @@ def render_cross_section(
 def render_soil_profile(
     fields: Dict[str, str],
     output_path: Path,
-    dpi: int = 96,
+    dpi: int = 300,
 ) -> Dict[str, Any]:
     """
     Render a soil profile grid for page 3 lower half.
