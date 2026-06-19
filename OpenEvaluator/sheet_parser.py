@@ -72,6 +72,10 @@ RAW_ROW: Dict[str, str] = {
     ),
     "Uploads":    "https://drive.google.com/open?id=1Tg5V7uI99qcUgqIjQAlrqrASexL7B5yA",
     "Special Notes": "none",
+    "Page 3 Site Plan Scale": "1 inch = 100 feet",
+    "Page 4 Top (Septic Plan) Scale": "1 inch = 10 feet",
+    "Page 4 Bottom Cross-Section Vertical Scale": "1 inch = 2.5 feet",
+    "Page 4 Bottom Cross-Section Horizontal Scale": "1 inch = 5 feet",
 }
 
 # Test row 2: Roberts (26-123)
@@ -118,6 +122,10 @@ ROBERTS_ROW: Dict[str, str] = {
     ),
     "Uploads":    "https://drive.google.com/open?id=1Tg5V7uI99qcUgqIjQAlrqrASexL7B5yA",
     "Special Notes": "sloped site, mobile home",
+    "Page 3 Site Plan Scale": "1 inch = 100 feet",
+    "Page 4 Top (Septic Plan) Scale": "1 inch = 10 feet",
+    "Page 4 Bottom Cross-Section Vertical Scale": "1 inch = 2.5 feet",
+    "Page 4 Bottom Cross-Section Horizontal Scale": "1 inch = 5 feet",
 }
 
 
@@ -567,6 +575,41 @@ def parse_variance_types(raw: str) -> Dict[str, str]:
     }
 
 
+def parse_scales(scale_page3: str, scale_page4_top: str, scale_page4_bottom_vert: str, scale_page4_bottom_horiz: str) -> Dict[str, str]:
+    """
+    Parse evaluator-provided scales from intake form columns AA-AD.
+
+    Inputs:
+    - scale_page3: Site plan scale (e.g. "1 inch = 100 feet")
+    - scale_page4_top: Septic system plan scale (e.g. "1 inch = 10 feet")
+    - scale_page4_bottom_vert: Cross-section vertical scale (e.g. "1 inch = 2.5 feet")
+    - scale_page4_bottom_horiz: Cross-section horizontal scale (e.g. "1 inch = 5 feet")
+
+    Returns dict with validated scale factors.
+    """
+    from scale_parser import parse_scale
+
+    result = {}
+
+    # Page 3 site plan scale
+    page3_factor = parse_scale(scale_page3) if scale_page3 else None
+    result["scale_page3_inches_per_feet"] = str(page3_factor) if page3_factor else "0.1"  # Default 1"=10'
+
+    # Page 4 top (septic plan) scale
+    page4_top_factor = parse_scale(scale_page4_top) if scale_page4_top else None
+    result["scale_page4_top_inches_per_feet"] = str(page4_top_factor) if page4_top_factor else "0.1"  # Default 1"=10'
+
+    # Page 4 bottom vertical scale
+    page4_vert_factor = parse_scale(scale_page4_bottom_vert) if scale_page4_bottom_vert else None
+    result["scale_page4_bottom_vertical_inches_per_feet"] = str(page4_vert_factor) if page4_vert_factor else "0.4"  # Default 1"=2.5'
+
+    # Page 4 bottom horizontal scale
+    page4_horiz_factor = parse_scale(scale_page4_bottom_horiz) if scale_page4_bottom_horiz else None
+    result["scale_page4_bottom_horizontal_inches_per_feet"] = str(page4_horiz_factor) if page4_horiz_factor else "0.2"  # Default 1"=5'
+
+    return result
+
+
 def derive_missing(fields: Dict[str, str]) -> Dict[str, str]:
     """
     Fill all remaining fields defined in field_map.yaml that are still
@@ -810,7 +853,16 @@ def parse_sheet_row(row: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     # ── 21. Special notes ────────────────────────────────────────────────
     fields["special_notes"] = raw.get("Special Notes", "").strip()
 
-    # ── 22. Derive all remaining fields ───────────────────────────────────
+    # ── 22. Evaluator-provided scales ────────────────────────────────────
+    scales = parse_scales(
+        raw.get("Page 3 Site Plan Scale", ""),
+        raw.get("Page 4 Top (Septic Plan) Scale", ""),
+        raw.get("Page 4 Bottom Cross-Section Vertical Scale", ""),
+        raw.get("Page 4 Bottom Cross-Section Horizontal Scale", "")
+    )
+    fields.update(scales)
+
+    # ── 23. Derive all remaining fields ───────────────────────────────────
     fields = derive_missing(fields)
 
     return fields
