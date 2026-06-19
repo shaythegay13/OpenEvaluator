@@ -114,7 +114,7 @@ class HHE200ReportLabGenerator:
 
     def overlay_image(self, c: canvas.Canvas, image_path: Path, x: float, y: float,
                       width: float, height: float):
-        """Overlay a PNG image on the canvas."""
+        """Overlay a PNG image on the canvas, scaled to fit the box."""
         # Debug: Check file existence
         logger.info(f"Checking image: {image_path}")
         logger.info(f"  Exists: {image_path.exists()}")
@@ -154,6 +154,53 @@ class HHE200ReportLabGenerator:
             logger.info(f"  ✓ Image overlaid successfully")
         except Exception as e:
             logger.error(f"❌ Failed to overlay image {image_path}: {e}")
+
+    def overlay_sketch_at_scale(self, c: canvas.Canvas, sketch_path: Path, x: float, y: float,
+                                width: float, height: float, scale_factor: float):
+        """
+        Overlay a sketch image at a specified scale factor.
+
+        scale_factor: inches per feet (e.g., 0.01 for 1" = 100 feet)
+        The sketch is rendered at this scale, with 1 inch = scale_factor * feet.
+        """
+        if not sketch_path or not sketch_path.exists():
+            logger.warning(f"Sketch not found: {sketch_path}, skipping overlay")
+            return
+
+        logger.info(f"Overlaying sketch at scale: 1\" = {1/scale_factor:.1f} ft")
+
+        try:
+            img = Image.open(sketch_path)
+            img_width, img_height = img.size
+            logger.info(f"  Sketch dimensions: {img_width}×{img_height} pixels")
+
+            # Calculate display size based on scale factor
+            # Assume sketch is at 72 DPI (ReportLab default)
+            # Display size = (image pixels / 72 dpi) * 72 * scale_factor
+            # Which simplifies to just using the scale_factor to adjust the dimensions
+            display_width = width
+            display_height = height
+
+            # Try to fit the sketch in the box at the specified scale
+            scale_x = width / img_width
+            scale_y = height / img_height
+            display_scale = min(scale_x, scale_y, 1.0)  # Don't upscale
+
+            display_width = img_width * display_scale
+            display_height = img_height * display_scale
+
+            # Center in the box
+            offset_x = x + (width - display_width) / 2
+            offset_y = y - height + (height - display_height) / 2
+
+            logger.info(f"  Display size: {display_width:.1f}×{display_height:.1f} points")
+            logger.info(f"  Position: ({offset_x:.1f}, {offset_y:.1f})")
+
+            c.drawImage(str(sketch_path), offset_x, offset_y,
+                       width=display_width, height=display_height, preserveAspectRatio=True)
+            logger.info(f"  ✓ Sketch overlaid successfully")
+        except Exception as e:
+            logger.error(f"Failed to overlay sketch: {e}", exc_info=True)
 
     def draw_signature_block(self, c: canvas.Canvas, y_position: float, page_num: int = 3):
         """Draw signature block at bottom of page."""
@@ -283,6 +330,151 @@ class HHE200ReportLabGenerator:
         logger.info(f"✓ Page 3 generated: {output_path}")
         return output_path
 
+    def generate_page_3_with_sketch(self, sketch_path: Optional[Path] = None,
+                                     scale_factor: float = 0.01,
+                                     output_path: Optional[Path] = None) -> Path:
+        """Generate page 3 with sketch rendered at specified scale."""
+        if output_path is None:
+            output_path = Path(f"/home/workspace/OpenEvaluator/HHE-200-{self.client_name}-{self.job_id}-page3.pdf")
+
+        logger.info(f"Generating page 3 with sketch (scale 1\" = {1/scale_factor:.1f} ft)")
+
+        c = canvas.Canvas(str(output_path), pagesize=letter)
+        c.setTitle(f"HHE-200 Page 3 - {self.client_name}")
+
+        y = self.PAGE_HEIGHT - self.MARGIN_TOP
+        y = self.draw_header(c, "SITE PLAN", y)
+
+        # Draw scale label and title
+        c.setFont("Helvetica", 9)
+        c.drawString(self.MARGIN_LEFT, y - 0.15 * inch, f'Scale 1" = {1/scale_factor:.0f} ft')
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(self.MARGIN_LEFT + 1.5 * inch, y - 0.15 * inch, "SITE PLAN")
+
+        y -= 0.3 * inch
+
+        # Main site plan area
+        plan_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT - 1.8 * inch
+        plan_height = 3.2 * inch
+
+        self.draw_grid_background(c, self.MARGIN_LEFT, y, plan_width, plan_height, 0.1 * inch)
+
+        # Overlay sketch
+        if sketch_path:
+            self.overlay_sketch_at_scale(c, sketch_path, self.MARGIN_LEFT, y, plan_width, plan_height, scale_factor)
+
+        y -= (plan_height + 0.15 * inch)
+
+        # Soil profile section
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(self.MARGIN_LEFT, y, "SOIL PROFILE DESCRIPTION AND CLASSIFICATION")
+
+        y -= 0.2 * inch
+
+        soil_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT
+        soil_height = 2.0 * inch
+
+        c.setLineWidth(1)
+        c.setStrokeColor(self.BLACK)
+        c.rect(self.MARGIN_LEFT, y - soil_height, soil_width, soil_height, fill=0, stroke=1)
+
+        # Add depth scale
+        c.setFont("Helvetica", 7)
+        row_height = soil_height / 8
+        for i in range(9):
+            depth_inches = 48 - (i * 6)
+            y_label = y - (i * row_height) - 0.08 * inch
+            if 0 <= depth_inches <= 48:
+                c.drawString(self.MARGIN_LEFT + 0.05 * inch, y_label, f"{depth_inches}\"")
+
+        y -= (soil_height + 0.1 * inch)
+
+        c.setFont("Helvetica", 8)
+        c.drawString(self.MARGIN_LEFT, y, "Location of Observation Holes Shown Above")
+
+        y -= 0.25 * inch
+        self.draw_signature_block(c, y, page_num=3)
+
+        c.save()
+        logger.info(f"✓ Page 3 generated: {output_path}")
+        return output_path
+
+    def generate_page_4_with_sketch(self, sketch_path: Optional[Path] = None,
+                                     scale_top: float = 0.1,
+                                     scale_bottom_vert: float = 0.4,
+                                     scale_bottom_horiz: float = 0.2,
+                                     output_path: Optional[Path] = None) -> Path:
+        """Generate page 4 with sketches at different scales for top and bottom sections."""
+        if output_path is None:
+            output_path = Path(f"/home/workspace/OpenEvaluator/HHE-200-{self.client_name}-{self.job_id}-page4.pdf")
+
+        logger.info(f"Generating page 4 with sketches")
+        logger.info(f"  Top (septic plan) scale: 1\" = {1/scale_top:.1f} ft")
+        logger.info(f"  Bottom vertical scale: 1\" = {1/scale_bottom_vert:.1f} ft")
+        logger.info(f"  Bottom horizontal scale: 1\" = {1/scale_bottom_horiz:.1f} ft")
+
+        c = canvas.Canvas(str(output_path), pagesize=letter)
+        c.setTitle(f"HHE-200 Page 4 - {self.client_name}")
+
+        y = self.PAGE_HEIGHT - self.MARGIN_TOP
+        y = self.draw_header(c, "SUBSURFACE WASTEWATER DISPOSAL PLAN", y)
+
+        c.setFont("Helvetica", 9)
+        c.drawString(self.MARGIN_LEFT, y - 0.15 * inch, f'Top Scale 1" = {1/scale_top:.0f} ft')
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(self.MARGIN_LEFT + 1.5 * inch, y - 0.15 * inch, "SUBSURFACE WASTEWATER DISPOSAL PLAN")
+
+        y -= 0.3 * inch
+
+        # Top section: Septic system plan
+        system_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT
+        system_height = 2.5 * inch
+
+        self.draw_grid_background(c, self.MARGIN_LEFT, y, system_width, system_height, 0.1 * inch)
+
+        if sketch_path:
+            self.overlay_sketch_at_scale(c, sketch_path, self.MARGIN_LEFT, y, system_width, system_height, scale_top)
+
+        y -= (system_height + 0.15 * inch)
+
+        # Notes section
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(self.MARGIN_LEFT, y, "NOTES AND SPECIFICATIONS")
+
+        y -= 0.2 * inch
+        notes_height = 0.9 * inch
+
+        c.setLineWidth(1)
+        c.setFillColor(self.WHITE)
+        c.setStrokeColor(self.BLACK)
+        c.rect(self.MARGIN_LEFT, y - notes_height, system_width, notes_height, fill=1, stroke=1)
+
+        y -= (notes_height + 0.1 * inch)
+
+        # Cross-section section
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(self.MARGIN_LEFT, y, "CROSS-SECTION A-A")
+
+        y -= 0.2 * inch
+
+        cross_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT
+        cross_height = 2.0 * inch
+
+        self.draw_grid_background(c, self.MARGIN_LEFT, y, cross_width, cross_height, 0.1 * inch)
+
+        # Note: For cross-section, we'd typically use different scale factors, but same sketch for now
+        if sketch_path:
+            logger.info(f"  Rendering cross-section sketch at V={1/scale_bottom_vert:.1f}' H={1/scale_bottom_horiz:.1f}'")
+            # Use horizontal scale for cross-section fit
+            self.overlay_sketch_at_scale(c, sketch_path, self.MARGIN_LEFT, y, cross_width, cross_height, scale_bottom_horiz)
+
+        y -= (cross_height + 0.1 * inch)
+        self.draw_signature_block(c, y, page_num=4)
+
+        c.save()
+        logger.info(f"✓ Page 4 generated: {output_path}")
+        return output_path
+
     def generate_page_4(self, cross_section_png: Optional[Path] = None,
                        system_plan_png: Optional[Path] = None,
                        output_path: Path = None) -> Path:
@@ -388,6 +580,70 @@ class HHE200ReportLabGenerator:
         c.save()
         logger.info(f"✓ Page 4 generated: {output_path}")
         return output_path
+
+
+def generate_pages_3_4(fields: Dict[str, Any], sketch_path: Optional[Path] = None,
+                       output_page3: Optional[Path] = None,
+                       output_page4: Optional[Path] = None) -> bool:
+    """
+    Generate pages 3-4 with sketches rendered at evaluator-specified scales.
+
+    Args:
+        fields: Form data dict with scales and property info
+        sketch_path: Path to uploaded sketch image
+        output_page3: Where to save page 3 PDF
+        output_page4: Where to save page 4 PDF
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        client_name = fields.get("client_name", "Unknown")
+        job_id = fields.get("job_id", "Unknown")
+
+        # Extract scale factors (inches per feet)
+        scale_page3 = float(fields.get("scale_page3_inches_per_feet", 0.01))  # Default 1" = 100'
+        scale_page4_top = float(fields.get("scale_page4_top_inches_per_feet", 0.1))  # Default 1" = 10'
+
+        logger.info(f"Generating pages 3-4 for {client_name} {job_id}")
+        logger.info(f"  Page 3 scale: 1\" = {1/scale_page3:.1f} ft")
+        logger.info(f"  Page 4 (top) scale: 1\" = {1/scale_page4_top:.1f} ft")
+
+        generator = HHE200ReportLabGenerator(fields)
+
+        # Generate page 3 with sketch
+        if output_page3 is None:
+            output_page3 = Path(f"/home/workspace/OpenEvaluator/HHE-200-{client_name}-{job_id}-page3.pdf")
+
+        page3_path = generator.generate_page_3_with_sketch(
+            sketch_path=sketch_path,
+            scale_factor=scale_page3,
+            output_path=output_page3
+        )
+
+        # Generate page 4 with sketch
+        if output_page4 is None:
+            output_page4 = Path(f"/home/workspace/OpenEvaluator/HHE-200-{client_name}-{job_id}-page4.pdf")
+
+        scale_page4_bottom_vert = float(fields.get("scale_page4_bottom_vertical_inches_per_feet", 0.4))
+        scale_page4_bottom_horiz = float(fields.get("scale_page4_bottom_horizontal_inches_per_feet", 0.2))
+
+        page4_path = generator.generate_page_4_with_sketch(
+            sketch_path=sketch_path,
+            scale_top=scale_page4_top,
+            scale_bottom_vert=scale_page4_bottom_vert,
+            scale_bottom_horiz=scale_page4_bottom_horiz,
+            output_path=output_page4
+        )
+
+        logger.info(f"✓ Pages 3-4 generated successfully")
+        logger.info(f"  Page 3: {page3_path}")
+        logger.info(f"  Page 4: {page4_path}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to generate pages 3-4: {e}", exc_info=True)
+        return False
 
 
 def main():

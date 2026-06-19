@@ -78,16 +78,79 @@ def run_pipeline(
         logger.error(f"Error adapting fields: {e}")
         return False
 
-    # Step 4: Generate pages 3-4
-    logger.info("Generating pages 3-4...")
-    logger.info("  [Placeholder: Pages 3-4 generation]")
-    logger.info("  Form structure: ✓ header, grids, signature blocks")
-    logger.info("  Sketch rendering: [Awaiting Google Drive integration]")
+    # Step 4: Fetch sketch from Google Drive
+    logger.info("Fetching sketch from Google Drive...")
+    sketch_url = fields.get("uploads_url")
+    sketch_path = None
+    if sketch_url:
+        from sketch_fetcher import fetch_sketch
+        sketch_path = fetch_sketch(sketch_url, output_dir / "sketches")
+        if sketch_path:
+            logger.info(f"  ✓ Sketch downloaded: {sketch_path}")
+        else:
+            logger.warning("  ⚠ Could not fetch sketch, will continue without it")
+    else:
+        logger.warning("  No sketch URL in form")
 
-    # Step 5: Assemble into 4-page PDF
+    # Step 5: Generate pages 3-4 with sketches
+    logger.info("Generating pages 3-4 with sketches...")
+    try:
+        from generate_hhe200_pages34_reportlab import generate_pages_3_4
+
+        page3_pdf = output_dir / f"HHE-200-{client_name}-page3.pdf"
+        page4_pdf = output_dir / f"HHE-200-{client_name}-page4.pdf"
+
+        success = generate_pages_3_4(
+            fields=fields,
+            sketch_path=sketch_path,
+            output_page3=page3_pdf,
+            output_page4=page4_pdf
+        )
+
+        if not success:
+            logger.error("Failed to generate pages 3-4")
+            return False
+
+        logger.info(f"  Page 3: {page3_pdf}")
+        logger.info(f"  Page 4: {page4_pdf}")
+    except Exception as e:
+        logger.error(f"Error generating pages 3-4: {e}", exc_info=True)
+        return False
+
+    # Step 6: Generate pages 1-2 with AcroForm
+    logger.info("Generating pages 1-2 with AcroForm...")
+    try:
+        from acro_fill import fill_pdf_with_data
+
+        pages_1_2_pdf_str = fill_pdf_with_data(acro_fields)
+        pages_1_2_pdf = Path(pages_1_2_pdf_str)
+
+        if not pages_1_2_pdf or not pages_1_2_pdf.exists():
+            logger.error("Failed to generate pages 1-2")
+            return False
+
+        logger.info(f"  Pages 1-2: {pages_1_2_pdf}")
+    except Exception as e:
+        logger.error(f"Error generating pages 1-2: {e}", exc_info=True)
+        return False
+
+    # Step 7: Assemble into 4-page PDF
     logger.info("Assembling 4-page PDF...")
-    output_pdf = output_dir / f"HHE-200-{client_name}-{job_id}.pdf"
-    logger.info(f"  Output: {output_pdf}")
+    try:
+        from assemble_hhe200 import merge_pdfs
+        from io import BytesIO
+
+        output_pdf = output_dir / f"HHE-200-{client_name}-{job_id}.pdf"
+
+        # Read PDFs as BytesIO objects
+        page3_io = BytesIO(page3_pdf.read_bytes())
+        page4_io = BytesIO(page4_pdf.read_bytes())
+
+        merge_pdfs(pages_1_2_pdf, page3_io, page4_io, output_pdf)
+        logger.info(f"  ✓ Final PDF: {output_pdf}")
+    except Exception as e:
+        logger.error(f"Error assembling PDF: {e}", exc_info=True)
+        return False
 
     logger.info(f"✓ {client_name} pipeline complete")
     return True
