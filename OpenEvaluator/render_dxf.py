@@ -859,6 +859,139 @@ def get_field_corners(
     return corners
 
 
+def solve_field_placement_from_sheet(
+    fields: Dict[str, str],
+    parcel_data: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Wire parsed tie-point data from sheet_parser to the placement solver.
+
+    Inputs (from sheet_parser fields dict):
+    - tie_point_a_object, tie_point_a_distance, tie_point_a_corner
+    - tie_point_b_object, tie_point_b_distance, tie_point_b_corner
+    - pin_object, pin_distance
+    - map_number, lot_number, town, mailing_state (for GeoLibrary lookup)
+    - cluster_width_ft, cluster_length_ft (field dimensions)
+
+    Returns placement result with status, field corners, etc.
+    """
+    from parcel_enricher import get_parcel_dimensions
+
+    # Extract parsed tie-point data
+    tp_a_obj = fields.get("tie_point_a_object", "")
+    tp_a_dist = fields.get("tie_point_a_distance", "0")
+    tp_a_corner = fields.get("tie_point_a_corner", "")
+    tp_b_obj = fields.get("tie_point_b_object", "")
+    tp_b_dist = fields.get("tie_point_b_distance", "0")
+    tp_b_corner = fields.get("tie_point_b_corner", "")
+    pin_obj = fields.get("pin_object", "")
+    pin_dist = fields.get("pin_distance", "0")
+
+    # Field dimensions
+    field_width = float(fields.get("cluster_width_ft", "11") or "11")
+    field_length = float(fields.get("cluster_length_ft", "28") or "28")
+
+    # Application type
+    app_type = fields.get("application_type", fields.get("Application Type", "replacement")).lower()
+    system_type = "replacement" if "replacement" in app_type else "new"
+
+    # Validate critical inputs
+    if not tp_a_obj or not tp_a_dist or not tp_a_corner:
+        return {
+            "status": "ERROR",
+            "message": "Tie Point A incomplete (object, distance, corner required)",
+        }
+
+    if not tp_b_obj or not tp_b_dist or not tp_b_corner:
+        return {
+            "status": "ERROR",
+            "message": "Tie Point B incomplete (object, distance, corner required)",
+        }
+
+    # Fetch parcel data if not provided
+    if parcel_data is None:
+        site_address = fields.get("site_address", "")
+        town = fields.get("town", "")
+        acreage = fields.get("acreage", "")
+
+        if not site_address or not town:
+            return {
+                "status": "ERROR",
+                "message": "Missing parcel identifiers (address/town)",
+            }
+
+        try:
+            acres_float = float(acreage) if acreage else None
+        except ValueError:
+            acres_float = None
+
+        parcel_data = get_parcel_dimensions(
+            town=town,
+            address=site_address,
+            acres=acres_float,
+        )
+
+        if not parcel_data.get("found"):
+            return {
+                "status": "ERROR",
+                "message": f"Parcel lookup failed for {site_address}, {town}",
+            }
+
+    # ── For now: use mock tie-point coordinates based on pin ──────────────
+    # Production: would need direction/bearing data in the intake form
+    # The tie points are placed at distances from the pin, but without bearing,
+    # we use reasonable defaults based on field observations
+    exterior_ring = parcel_data.get("corners", parcel_data.get("rings", [[]])[0])
+
+    if not exterior_ring:
+        return {
+            "status": "ERROR",
+            "message": "Could not get parcel boundary from GeoLibrary",
+        }
+
+    # Use first vertex of the exterior ring as the pin coordinate (in meters from WGS84)
+    pin_coord = exterior_ring[0]
+
+    try:
+        pin_x, pin_y = float(pin_coord[0]), float(pin_coord[1])
+        tp_a_dist_ft = float(tp_a_dist)
+        tp_b_dist_ft = float(tp_b_dist)
+    except (ValueError, TypeError) as e:
+        return {
+            "status": "ERROR",
+            "message": f"Invalid coordinate/distance values: {e}",
+        }
+
+    # Mock tie-point placement: offset from pin at various angles
+    # In production, bearing/direction would come from intake form
+    import math
+
+    # Place tie point A at angle 45°, distance from pin
+    angle_a = math.radians(45)
+    tie_point_a = (pin_x + tp_a_dist_ft * math.cos(angle_a),
+                   pin_y + tp_a_dist_ft * math.sin(angle_a))
+
+    # Place tie point B at angle 135°, distance from pin
+    angle_b = math.radians(135)
+    tie_point_b = (pin_x + tp_b_dist_ft * math.cos(angle_b),
+                   pin_y + tp_b_dist_ft * math.sin(angle_b))
+
+    # Call the placement solver
+    result = solve_field_placement(
+        parcel_data=parcel_data,
+        field_width_ft=field_width,
+        field_length_ft=field_length,
+        tie_point_a=tie_point_a,
+        tie_point_b=tie_point_b,
+        distance_a_to_corner_c1_ft=tp_a_dist_ft,
+        distance_b_to_corner_c2_ft=tp_b_dist_ft,
+        pin_name=pin_obj,
+        system_type=system_type,
+    )
+
+    return result
+
+
 def render_boundary_with_field(
     parcel_data: Dict[str, Any],
     field_placement: Dict[str, Any],

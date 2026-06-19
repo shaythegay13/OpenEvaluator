@@ -58,8 +58,10 @@ RAW_ROW: Dict[str, str] = {
         "11'x28' cluster formation."
     ),
     "Key distances between features": (
-        "house to tank = 8', tank to field may vary, "
-        "field to well 100 feet minimum, unknown"
+        "Tie Point A: maple tree (ERP), 45 feet, NW corner\n"
+        "Tie Point B: oak tree, 62 feet, SE corner\n"
+        "Pin/Reference: iron rod, 35 feet\n"
+        "field to well 100 feet minimum"
     ),
     "Elevation reference point (ERP) and elevations (if known)": (
         "ERP = nail set 12 inches above grade in 6\" maple tree, "
@@ -100,6 +102,9 @@ ROBERTS_ROW: Dict[str, str] = {
         "2 rows of 4 infiltrator modules, 8 units total, 8'x20' cluster formation"
     ),
     "Key distances between features": (
+        "Tie Point A: shed, 17.5 feet, NW corner\n"
+        "Tie Point B: shed, 39.5 feet, NE corner\n"
+        "Pin/Reference: telephone pole, 80 feet\n"
         "field to well 120 feet, field to house 25 feet, "
         "tank to field 8 feet, upslope backfill 4 inches, downslope backfill 10 inches"
     ),
@@ -385,14 +390,72 @@ def parse_field_layout(raw: str) -> Dict[str, str]:
     return result
 
 
+def parse_tie_points(raw: str) -> Dict[str, str]:
+    """
+    Parse structured tie-point data from the "Key distances" field.
+
+    Expected format:
+      Tie Point A: [object], [distance] feet, [field corner]
+      Tie Point B: [object], [distance] feet, [field corner]
+      Pin/Reference: [object], [distance] feet
+
+    Returns:
+      tie_point_a_object, tie_point_a_distance, tie_point_a_corner,
+      tie_point_b_object, tie_point_b_distance, tie_point_b_corner,
+      pin_object, pin_distance
+    """
+    result = {}
+    if not raw:
+        return result
+
+    # Normalize: handle line breaks and tabs
+    text = raw.replace("\n", " ").replace("\t", " ")
+
+    # Tie Point A: [object], [distance] feet, [field corner]
+    tp_a = re.search(
+        r"Tie\s+Point\s+A\s*:\s*([^,]+)\s*,\s*(\d+(?:\.\d+)?)\s*feet?\s*,\s*([^,\n]+?)(?:\s*$|,|Tie|Pin)",
+        text, re.IGNORECASE
+    )
+    if tp_a:
+        result["tie_point_a_object"] = _strip(tp_a.group(1))
+        result["tie_point_a_distance"] = tp_a.group(2)
+        result["tie_point_a_corner"] = _strip(tp_a.group(3))
+
+    # Tie Point B: [object], [distance] feet, [field corner]
+    tp_b = re.search(
+        r"Tie\s+Point\s+B\s*:\s*([^,]+)\s*,\s*(\d+(?:\.\d+)?)\s*feet?\s*,\s*([^,\n]+?)(?:\s*$|,|Pin)",
+        text, re.IGNORECASE
+    )
+    if tp_b:
+        result["tie_point_b_object"] = _strip(tp_b.group(1))
+        result["tie_point_b_distance"] = tp_b.group(2)
+        result["tie_point_b_corner"] = _strip(tp_b.group(3))
+
+    # Pin/Reference: [object], [distance] feet
+    pin = re.search(
+        r"Pin\s*/?(?:Reference)?\s*:\s*([^,]+)\s*,\s*(\d+(?:\.\d+)?)\s*feet?",
+        text, re.IGNORECASE
+    )
+    if pin:
+        result["pin_object"] = _strip(pin.group(1))
+        result["pin_distance"] = pin.group(2)
+
+    return result
+
+
 def parse_distances(raw: str) -> Dict[str, str]:
     """
     'house to tank = 8', tank to field may vary,
      field to well 100 feet minimum, upslope backfill 4 inches, downslope backfill 10 inches'
 
     Extract: house-to-tank, well setback, backfill upslope/downslope, etc.
+    Also extracts structured tie-point data if present.
     """
     result = {}
+
+    # Try structured tie-point parsing first
+    tie_points = parse_tie_points(raw)
+    result.update(tie_points)
 
     # Well setback: "field to well 100 feet"
     m = re.search(r"field to well\s*=?\s*(\d+)", raw, re.IGNORECASE)
