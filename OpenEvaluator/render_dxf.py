@@ -862,6 +862,8 @@ def get_field_corners(
 def solve_field_placement_from_sheet(
     fields: Dict[str, str],
     parcel_data: Optional[Dict[str, Any]] = None,
+    bearing_a_degrees: Optional[float] = None,
+    bearing_b_degrees: Optional[float] = None,
 ) -> Dict[str, Any]:
     """
     Wire parsed tie-point data from sheet_parser to the placement solver.
@@ -872,6 +874,11 @@ def solve_field_placement_from_sheet(
     - pin_object, pin_distance
     - map_number, lot_number, town, mailing_state (for GeoLibrary lookup)
     - cluster_width_ft, cluster_length_ft (field dimensions)
+
+    Optional:
+    - bearing_a_degrees: magnetic bearing from pin to tie point A (degrees, 0-360)
+    - bearing_b_degrees: magnetic bearing from pin to tie point B (degrees, 0-360)
+    - If not provided, defaults to 45° and 135° (NE and SE)
 
     Returns placement result with status, field corners, etc.
     """
@@ -962,17 +969,20 @@ def solve_field_placement_from_sheet(
             "message": f"Invalid coordinate/distance values: {e}",
         }
 
-    # Mock tie-point placement: offset from pin at various angles
-    # In production, bearing/direction would come from intake form
+    # Tie-point placement: offset from pin at specified bearings
     import math
 
-    # Place tie point A at angle 45°, distance from pin
-    angle_a = math.radians(45)
+    # Use provided bearings or defaults
+    bearing_a = bearing_a_degrees if bearing_a_degrees is not None else 45.0
+    bearing_b = bearing_b_degrees if bearing_b_degrees is not None else 135.0
+
+    # Place tie point A at specified bearing and distance from pin
+    angle_a = math.radians(bearing_a)
     tie_point_a = (pin_x + tp_a_dist_ft * math.cos(angle_a),
                    pin_y + tp_a_dist_ft * math.sin(angle_a))
 
-    # Place tie point B at angle 135°, distance from pin
-    angle_b = math.radians(135)
+    # Place tie point B at specified bearing and distance from pin
+    angle_b = math.radians(bearing_b)
     tie_point_b = (pin_x + tp_b_dist_ft * math.cos(angle_b),
                    pin_y + tp_b_dist_ft * math.sin(angle_b))
 
@@ -1049,24 +1059,31 @@ def render_boundary_with_field(
                 'field_center': field_placement['field_center'],
                 'rotation': field_placement['field_rotation_degrees'],
             }
-        
-        # Get corners
-        corners = field_placement['field_corners']
-        if not corners and 'candidates' in field_placement:
-            # Reconstruct corners from candidate
+
+        # Get corners (in meters from projection)
+        corners = field_placement.get('field_corners', [])
+        if not corners and 'field_center' in field_placement and field_placement['field_center']:
+            # Reconstruct corners from field_center
+            field_width = 11.0
+            field_length = 28.0
+            corners = get_field_corners(field_placement['field_center'], field_width, field_length, field_placement.get('field_rotation_degrees', 0))
+
+        if not corners and cand:
+            # Reconstruct from candidate (for AMBIGUOUS case)
             field_width = 11.0
             field_length = 28.0
             corners = get_field_corners(cand['field_center'], field_width, field_length, cand['rotation'])
-        
+
         if corners:
-            field_pts = [to_px(c[0], c[1]) for c in corners]
-            draw.polygon(field_pts, outline="red", width=2, fill="lightcoral")
-            
+            # Convert corners from meters to feet, then to pixels
+            corners_ft = [[c[0]*3.28084, c[1]*3.28084] for c in corners]
+            field_pts = [to_px(c[0], c[1]) for c in corners_ft]
+            draw.polygon(field_pts, outline="red", width=3, fill="lightcoral")
+
             # Label field
-            if corners:
-                center_px = (sum(p[0] for p in field_pts) // len(field_pts), 
-                            sum(p[1] for p in field_pts) // len(field_pts))
-                draw.text(center_px, "FIELD", fill="darkred")
+            center_px = (int(sum(p[0] for p in field_pts) / len(field_pts)),
+                        int(sum(p[1] for p in field_pts) / len(field_pts)))
+            draw.text(center_px, "FIELD", fill="darkred", font=None)
     
     img.save(output_path)
     logger.info(f"✓ Boundary + field rendered: {output_path} ({width_px}x{height_px}px)")
