@@ -115,19 +115,27 @@ class HHE200ReportLabGenerator:
     def overlay_image(self, c: canvas.Canvas, image_path: Path, x: float, y: float,
                       width: float, height: float):
         """Overlay a PNG image on the canvas."""
+        # Debug: Check file existence
+        logger.info(f"Checking image: {image_path}")
+        logger.info(f"  Exists: {image_path.exists()}")
+        logger.info(f"  Grid area: x={x}, y={y}, width={width}, height={height}")
+
         if not image_path.exists():
-            logger.warning(f"Image not found: {image_path}")
+            logger.error(f"❌ IMAGE NOT FOUND: {image_path}")
             return
 
         try:
             # Open image to get dimensions
             img = Image.open(image_path)
             img_width, img_height = img.size
+            logger.info(f"  PNG dimensions: {img_width}×{img_height}")
 
             # Calculate scaling to fit in the box while maintaining aspect ratio
             scale_x = width / img_width
             scale_y = height / img_height
             scale = min(scale_x, scale_y)
+
+            logger.info(f"  Scale factors: x={scale_x:.4f}, y={scale_y:.4f}, using={scale:.4f}")
 
             scaled_width = img_width * scale
             scaled_height = img_height * scale
@@ -136,10 +144,16 @@ class HHE200ReportLabGenerator:
             offset_x = x + (width - scaled_width) / 2
             offset_y = y - height + (height - scaled_height) / 2
 
+            logger.info(f"  Scaled to: {scaled_width:.1f}×{scaled_height:.1f} pts")
+            logger.info(f"  Grid box bottom-left: ({x:.1f}, {y-height:.1f})")
+            logger.info(f"  Image positioned at: ({offset_x:.1f}, {offset_y:.1f})")
+            logger.info(f"  Image fits in box: width_ok={scaled_width <= width}, height_ok={scaled_height <= height}")
+
             c.drawImage(str(image_path), offset_x, offset_y,
                        width=scaled_width, height=scaled_height, preserveAspectRatio=True)
+            logger.info(f"  ✓ Image overlaid successfully")
         except Exception as e:
-            logger.warning(f"Failed to overlay image {image_path}: {e}")
+            logger.error(f"❌ Failed to overlay image {image_path}: {e}")
 
     def draw_signature_block(self, c: canvas.Canvas, y_position: float, page_num: int = 3):
         """Draw signature block at bottom of page."""
