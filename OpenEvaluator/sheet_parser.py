@@ -25,7 +25,7 @@ OUTPUT_PDF = SCRIPT_DIR / "HHE-200-filled.pdf"
 # sheetName="Form Responses 1", range=A1:T2, hasHeaders=true
 RAW_ROW: Dict[str, str] = {
     "Timestamp":        "3/1/2026 11:17:21",
-    "Client name, Phone number, and Address": "Kristen Marquis, empty, empty",
+    "Client name, Phone number, and Address": "Kristen Marquis, , 17 Aspen Way, Turner, Maine 04282",
     "Property Location Details": "17 Aspen Way, Turner, Maine 04282",
     "Map and Lot # and Acreage": "26, 18, 2.35",
     "Site Evaluator's Information": (
@@ -81,7 +81,7 @@ RAW_ROW: Dict[str, str] = {
 # Test row 2: Roberts (26-123)
 ROBERTS_ROW: Dict[str, str] = {
     "Timestamp":        "3/5/2026 14:22:15",
-    "Client name, Phone number, and Address": "Charles Roberts, empty, empty",
+    "Client name, Phone number, and Address": "Charles Roberts, , 450 Lane Road, Greene, Maine 04236",
     "Property Location Details": "450 Lane Road, Greene, Maine 04236",
     "Map and Lot # and Acreage": "26, 123, 1.85",
     "Site Evaluator's Information": (
@@ -278,14 +278,16 @@ def parse_soil_by_depth(raw: str) -> Dict[str, str]:
 
 def parse_client_address(raw: str) -> Dict[str, str]:
     """
-    'Kristen Marquis, empty, empty'
-    → owner_name='Kristen Marquis', phone='', mailing_street=''
+    'Kristen Marquis, [phone], [address]'
+    → owner_name='Kristen Marquis', phone='', mailing_street='[address]' (or extracted from parts[2])
     """
     parts = [p.strip() for p in raw.split(",")]
     while len(parts) < 3:
         parts.append("")
     owner_name = parts[0] if parts[0].lower() != "empty" else ""
-    mailing_street = parts[1] if parts[1].lower() != "empty" else ""
+    # parts[1] = phone (may be empty)
+    # parts[2] = full mailing address or "empty"
+    mailing_street = parts[2] if parts[2].lower() != "empty" else parts[1] if parts[1].lower() != "empty" else ""
     return {
         "owner_name":     owner_name,
         "mailing_street": mailing_street,

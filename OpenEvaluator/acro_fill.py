@@ -493,68 +493,6 @@ def _draw_text_block(page, text: str, x: float, y: float, max_width: float,
         page.insert_text(fitz.Point(x, y + i * line_height), line, fontsize=fontsize, color=color)
 
 
-def _draw_page3_overlays(page, fields: Dict[str, str], scale_ft: float) -> None:
-    """Text overlays for page 3 (Site Plan)."""
-    import fitz
-
-    # Draw field values using coordinates from field_coordinates
-    if get_page_fields:
-        page_fields = get_page_fields(3)  # Page 3 fields
-        overlay_count = 0
-        for field_name, (x, y, font_size, max_length) in page_fields.items():
-            mapped_name = map_field_name(field_name)
-            val = fields.get(mapped_name, "")
-            if val and isinstance(val, str) and val.strip():
-                val_str = val.strip()[:max_length]
-                try:
-                    page.insert_text(fitz.Point(x, y), val_str, fontsize=font_size, color=(0, 0, 0))
-                    overlay_count += 1
-                except Exception as e:
-                    print(f"    Warning: failed to draw {field_name} at ({x},{y}): {e}")
-        if overlay_count > 0:
-            print(f"  Page 3: drew {overlay_count} field overlays")
-
-    # Scale value after "Scale: 1\" =" label (~x=87, y=83)
-    scale_str = str(int(round(scale_ft))) if scale_ft > 0 else "40"
-    page.insert_text(fitz.Point(87, 83), scale_str, fontsize=9, color=(0, 0, 0))
-
-    # Disclaimer below the Site Location box (~x=427, y=291)
-    _draw_text_block(page, SITE_LOCATION_DISCLAIMER, x=427, y=291, max_width=178, fontsize=5.5)
-
-    # Special Note in right observation hole section — text only, no box
-    _draw_text_block(page, PG3_SPECIAL_NOTE, x=312, y=390, max_width=290, fontsize=7.5)
-
-
-def _draw_page4_overlays(page, fields: Dict[str, str]) -> None:
-    """Text overlays for page 4 (Disposal Plan + Cross Section)."""
-    import fitz
-
-    # Draw field values using coordinates from field_coordinates
-    if get_page_fields:
-        page_fields = get_page_fields(4)  # Page 4 fields
-        overlay_count = 0
-        for field_name, (x, y, font_size, max_length) in page_fields.items():
-            mapped_name = map_field_name(field_name)
-            val = fields.get(mapped_name, "")
-            if val and isinstance(val, str) and val.strip():
-                val_str = val.strip()[:max_length]
-                try:
-                    page.insert_text(fitz.Point(x, y), val_str, fontsize=font_size, color=(0, 0, 0))
-                    overlay_count += 1
-                except Exception as e:
-                    print(f"    Warning: failed to draw {field_name} at ({x},{y}): {e}")
-        if overlay_count > 0:
-            print(f"  Page 4: drew {overlay_count} field overlays")
-
-    # Hardcoded notes for page 4
-    # Top drawing area (y≈95-405): notes at bottom corners
-    _draw_text_block(page, PG4_SEPTIC_TANK_NOTE, x=7,   y=308, max_width=190, fontsize=5.8)
-    _draw_text_block(page, PG4_GENERAL_NOTES,    x=308, y=275, max_width=296, fontsize=5.5)
-
-    # Bottom drawing area (y≈466-700): notes at bottom corners
-    _draw_text_block(page, PG4_CROSS_SECTION_LEFT,  x=7,   y=628, max_width=190, fontsize=5.5)
-    _draw_text_block(page, PG4_CROSS_SECTION_RIGHT, x=308, y=598, max_width=296, fontsize=5.2)
-
 
 def _calc_dxf_bounds(msp):
     """Return (min_x, min_y, max_x, max_y) for msp, or (None,None,None,None)."""
@@ -717,58 +655,9 @@ def fill_acro(fields: Dict[str, str], out_path: Optional[str] = None) -> str:
     scale_ft = float(fields.get("scale_pg3", 40))
 
     # ── Embed DXF drawings directly into form sections ───
-    # Page 3 — Site Plan & Locus Map
-    print("  Page 3: embedding DXF drawings into form sections")
-
-    png_pg3 = base / "site_plan_pg3.png"
-    if png_pg3.exists() and doc.page_count > 2:
-        try:
-            # Site plan drawing area: 415×320 points
-            # Insert at full rect - pymupdf will fit with aspect ratio
-            rect_pg3 = fitz.Rect(5, 55, 420, 375)
-            doc[2].insert_image(rect_pg3, filename=str(png_pg3))
-            print("    ✓ embedded site plan into form section")
-        except Exception as e:
-            print(f"    Warning (site plan): {e}")
-
-    locus_png = base / "locus_map.png"
-    if locus_png.exists() and doc.page_count > 2:
-        try:
-            # Locus map area: 180×223 points
-            rect_locus = fitz.Rect(427, 57, 607, 280)
-            doc[2].insert_image(rect_locus, filename=str(locus_png))
-            print("    ✓ embedded locus map into form section")
-        except Exception as e:
-            print(f"    Warning (locus): {e}")
-
-    if doc.page_count > 2:
-        _draw_page3_overlays(doc[2], fields, scale_ft)
-
-    # Page 4 — Disposal Plan & Cross-Section
-    print("  Page 4: embedding DXF drawings into form sections")
-
-    png_pg4_top = base / "disposal_plan_pg4.png"
-    if png_pg4_top.exists() and doc.page_count > 3:
-        try:
-            # Disposal plan area: 603×305 points
-            rect_disp = fitz.Rect(5, 95, 608, 400)
-            doc[3].insert_image(rect_disp, filename=str(png_pg4_top))
-            print("    ✓ embedded disposal plan into form section")
-        except Exception as e:
-            print(f"    Warning (disposal): {e}")
-
-    png_pg4_bot = base / "cross_section_pg4.png"
-    if png_pg4_bot.exists() and doc.page_count > 3:
-        try:
-            # Cross-section area: 603×229 points
-            rect_xsect = fitz.Rect(5, 466, 608, 695)
-            doc[3].insert_image(rect_xsect, filename=str(png_pg4_bot))
-            print("    ✓ embedded cross-section into form section")
-        except Exception as e:
-            print(f"    Warning (cross-section): {e}")
-
-    if doc.page_count > 3:
-        _draw_page4_overlays(doc[3], fields)
+    # Pages 3-4 are now generated as complete PDFs (generate_hhe200_pages34_reportlab.py)
+    # and will be assembled into the final 4-page PDF by run_pipeline.py
+    # No PNG embedding or overlays needed here.
 
     doc.save(str(save_path), incremental=False, deflate=True)
     doc.close()
