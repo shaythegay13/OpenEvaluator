@@ -202,6 +202,90 @@ class HHE200ReportLabGenerator:
         except Exception as e:
             logger.error(f"Failed to overlay sketch: {e}", exc_info=True)
 
+    def draw_soil_profile_table(self, c: canvas.Canvas, fields: Dict[str, Any], y_position: float) -> float:
+        """
+        Draw soil profile description table at bottom of page 3.
+
+        Args:
+            c: ReportLab canvas
+            fields: Form data dict
+            y_position: Starting y position
+
+        Returns:
+            New y position after table
+        """
+        x_start = self.MARGIN_LEFT
+        table_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT
+        table_height = 1.8 * inch
+        header_height = 0.25 * inch
+
+        # Column structure: Depth | Obs Hole # | Textures | Consistency | Color | Redox Features
+        col_widths = [0.6 * inch, 0.8 * inch, 1.1 * inch, 1.1 * inch, 0.9 * inch, 1.3 * inch]
+
+        # Step 1: Draw table borders and grid
+        c.setLineWidth(1)
+        c.setStrokeColor(self.BLACK)
+        c.rect(x_start, y_position - table_height, table_width, table_height, fill=0, stroke=1)
+
+        # Vertical lines
+        c.setLineWidth(0.5)
+        x_pos = x_start
+        for width in col_widths:
+            c.line(x_pos, y_position - header_height, x_pos, y_position - table_height)
+            x_pos += width
+        c.line(x_pos, y_position - header_height, x_pos, y_position - table_height)  # Right edge
+
+        # Horizontal lines
+        row_height = (table_height - header_height) / 8
+        for i in range(8):
+            y_line = y_position - header_height - (i + 1) * row_height
+            c.line(x_start, y_line, x_start + table_width, y_line)
+
+        # Step 2: Draw header background
+        c.setLineWidth(0)
+        c.setFillColor(colors.HexColor("#D3D3D3"))
+        c.rect(x_start, y_position - header_height, table_width, header_height, fill=1, stroke=0)
+
+        # Step 3: Add header text
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(self.BLACK)
+        headers = ["Depth", "Obs #", "Textures", "Consistency", "Color", "Redox"]
+        x_pos = x_start
+        for i, header in enumerate(headers):
+            col_x = x_pos + (col_widths[i] / 2)
+            c.drawCentredString(col_x, y_position - 0.18 * inch, header)
+            x_pos += col_widths[i]
+
+        # Step 4: Add depth scale labels on left
+        c.setFont("Helvetica", 7)
+        c.setFillColor(self.BLACK)
+        for i in range(8):
+            depth_inches = 48 - (i * 6)
+            y_row = y_position - header_height - (i * row_height) - (row_height / 2)
+            col_x = x_start + (col_widths[0] / 2)
+            c.drawCentredString(col_x, y_row, f'{depth_inches}"')
+
+        # Step 5: Populate data from fields (if available)
+        soil_profile = fields.get('soil_profile_data', [])
+        c.setFont("Helvetica", 7)
+        for i, row_data in enumerate(soil_profile[:8]):  # Max 8 rows
+            y_row = y_position - header_height - (i * row_height) - (row_height / 2)
+            x_pos = x_start + col_widths[0]
+
+            # Populate each cell (skip first column, already filled with depth)
+            for j in range(1, len(col_widths)):
+                if j - 1 < len(row_data):
+                    cell_text = str(row_data[j - 1])[:15]  # Truncate to fit
+                    col_x = x_pos + (col_widths[j] / 2)
+                    c.drawCentredString(col_x, y_row, cell_text)
+                x_pos += col_widths[j]
+
+        # Add note below table
+        c.setFont("Helvetica", 8)
+        c.drawString(x_start, y_position - table_height - 0.12 * inch, "Location of Observation Holes Shown Above")
+
+        return y_position - table_height - 0.2 * inch
+
     def draw_signature_block(self, c: canvas.Canvas, y_position: float, page_num: int = 3):
         """Draw signature block at bottom of page."""
         x_start = self.MARGIN_LEFT
@@ -365,34 +449,16 @@ class HHE200ReportLabGenerator:
 
         y -= (plan_height + 0.15 * inch)
 
-        # Soil profile section
+        # Soil profile section with table
         c.setFont("Helvetica-Bold", 9)
         c.drawString(self.MARGIN_LEFT, y, "SOIL PROFILE DESCRIPTION AND CLASSIFICATION")
 
         y -= 0.2 * inch
 
-        soil_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT
-        soil_height = 2.0 * inch
+        # Draw soil profile table
+        y = self.draw_soil_profile_table(c, self.fields, y)
 
-        c.setLineWidth(1)
-        c.setStrokeColor(self.BLACK)
-        c.rect(self.MARGIN_LEFT, y - soil_height, soil_width, soil_height, fill=0, stroke=1)
-
-        # Add depth scale
-        c.setFont("Helvetica", 7)
-        row_height = soil_height / 8
-        for i in range(9):
-            depth_inches = 48 - (i * 6)
-            y_label = y - (i * row_height) - 0.08 * inch
-            if 0 <= depth_inches <= 48:
-                c.drawString(self.MARGIN_LEFT + 0.05 * inch, y_label, f"{depth_inches}\"")
-
-        y -= (soil_height + 0.1 * inch)
-
-        c.setFont("Helvetica", 8)
-        c.drawString(self.MARGIN_LEFT, y, "Location of Observation Holes Shown Above")
-
-        y -= 0.25 * inch
+        y -= 0.15 * inch
         self.draw_signature_block(c, y, page_num=3)
 
         c.save()
