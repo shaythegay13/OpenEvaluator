@@ -461,6 +461,72 @@ class HHE200ReportLabGenerator:
 
         return notes_y - notes_height - 0.1 * inch
 
+    def draw_page4_notes_section(self, c: canvas.Canvas, fields: Dict[str, Any], y_position: float) -> float:
+        """
+        Draw notes section on page 4, just above signature block.
+
+        Args:
+            c: ReportLab canvas
+            fields: Form data dict with system specs
+            y_position: Starting y position
+
+        Returns:
+            New y position after notes section
+        """
+        x_start = self.MARGIN_LEFT
+        section_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT
+        section_height = 1.0 * inch
+
+        # Draw notes box border
+        c.setLineWidth(1)
+        c.setStrokeColor(self.BLACK)
+        c.setFillColor(self.WHITE)
+        c.rect(x_start, y_position - section_height, section_width, section_height, fill=1, stroke=1)
+
+        # Notes header
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColor(self.BLACK)
+        c.drawString(x_start + 0.1 * inch, y_position - 0.2 * inch, "SYSTEM NOTES")
+
+        # Horizontal line below header
+        c.setLineWidth(0.5)
+        c.line(x_start + 0.05 * inch, y_position - 0.28 * inch, x_start + section_width - 0.05 * inch, y_position - 0.28 * inch)
+
+        # Notes content - system specifications
+        notes_text = fields.get("system_notes",
+                               "GSF-B43 Module approved for this application. "
+                               "System designed per Maine Department of Health & Human Services standards. "
+                               "All work shall be in accordance with the approved design.")
+
+        c.setFont("Helvetica", 8)
+        c.setFillColor(self.BLACK)
+
+        # Word-wrap notes
+        text_x = x_start + 0.1 * inch
+        text_y = y_position - 0.4 * inch
+        line_height = 0.12 * inch
+        max_width_chars = 95  # Approximate chars per line at 8pt
+
+        words = notes_text.split()
+        current_line = ""
+        line_count = 0
+        max_lines = 5  # Safety limit
+
+        for word in words:
+            test_line = current_line + (" " if current_line else "") + word
+            if len(test_line) > 28 or line_count >= max_lines - 1:
+                if current_line:
+                    c.drawString(text_x, text_y - (line_count * line_height), current_line)
+                    line_count += 1
+                current_line = word
+            else:
+                current_line = test_line
+
+        if current_line and line_count < max_lines:
+            c.drawString(text_x, text_y - (line_count * line_height), current_line)
+
+        return y_position - section_height - 0.1 * inch
+
     def draw_signature_block(self, c: canvas.Canvas, y_position: float, page_num: int = 3):
         """Draw signature block at bottom of page."""
         x_start = self.MARGIN_LEFT
@@ -717,6 +783,10 @@ class HHE200ReportLabGenerator:
             self.overlay_sketch_at_scale(c, sketch_path, self.MARGIN_LEFT, y, cross_width, cross_height, scale_bottom_horiz)
 
         y -= (cross_height + 0.1 * inch)
+
+        # Page 4 notes section (above signature)
+        y = self.draw_page4_notes_section(c, self.fields, y)
+
         self.draw_signature_block(c, y, page_num=4)
 
         c.save()
