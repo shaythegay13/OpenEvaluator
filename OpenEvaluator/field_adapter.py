@@ -478,10 +478,25 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
         if 'existing' in notes.lower() or 'expose' in notes.lower():
             adapted['treatment_tanks'] = 'X'
 
+    # Tank total/count
+    adapted['tank_total_new'] = sheet_fields.get('num_tanks', '1')
+    adapted['tank_notes'] = sheet_fields.get('septic_tank_notes', '')
+
+    # ── WELL & BUILDING INFO ──
+    adapted['well_depth'] = sheet_fields.get('well_depth', '')
+    adapted['well_type'] = sheet_fields.get('well_type', '')
+    zoning = sheet_fields.get('shoreland_zoning', '')
+    if zoning and zoning.strip() and zoning.lower() not in ('', 'no', 'n'):
+        adapted['shoreland_zoning_yn'] = 'Y'
+    else:
+        adapted['shoreland_zoning_yn'] = 'N'
+
     # ── ELEVATIONS (Pages 3-4) ──
     adapted['finished_grade_elevation'] = sheet_fields.get('finish_grade_elevation', sheet_fields.get('finished_grade_elevation_p6', '0'))
     adapted['top_distribution_pipe'] = sheet_fields.get('top_of_distribution_pipe_elevation', sheet_fields.get('top_of_distribution_pipe_elevation_p6', '-12'))
     adapted['bottom_disposal_field'] = sheet_fields.get('bottom_of_disposal_field_elevation', sheet_fields.get('bottom_of_disposal_field_elevation_p6', '30'))
+    adapted['erp_location'] = sheet_fields.get('erp_description', '')
+    adapted['erp_reference_elevation'] = sheet_fields.get('erp_elevation', '0')
 
     # ── NOTES ──
     site_notes = sheet_fields.get('site_notes', '')

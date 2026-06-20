@@ -31,6 +31,7 @@ WIDGET_MAP: Dict[str, List[str]] = {
     "owner_phone":            ["Owner/ Applicant Phone Number"],
     "owner_email":            ["Owner/ Applicant Email"],
     "property_owner_signature_date": ["Date (Property Owner Signature)"],
+    "owner_signature":        ["Property Owner Signature"],
     "installer_name":         ["Installer Name"],
     "installer_phone":        ["Installer Phone #"],
     "installer_email":        ["Installer Email"],
@@ -40,6 +41,9 @@ WIDGET_MAP: Dict[str, List[str]] = {
     "lpi_number":             ["LPI #"],
     "lpi_inspection1_date":   ["Date for First LPI Inspection"],
     "lpi_inspection2_date":   ["Date for Second LPI Inspection"],
+    "lpi_signature":          ["LPI Signature"],
+    "lpi_signature_1":        ["LPI Signature (Inspection #1)"],
+    "lpi_signature_2":        ["LPI Signature (Inspection #2)"],
     "fee_area":               ["Fee Calculation Area"],
     "total_fee":              ["Total Fee"],
     "town_share":             ["Town Share"],
@@ -91,6 +95,7 @@ WIDGET_MAP: Dict[str, List[str]] = {
     "evaluator_phone":        ["Site Evaluator Phone #"],
     # SE # (with space) on pages 1,2,5 and SE# (no space) on pages 3,4
     "se_number":              ["SE #", "SE#"],
+    "se_signature":           ["Site Evaluator Signature"],
     # One key covers all SE date variants across all pages
     "se_signature_date":      [
         "Date of Site Evaluator Signature",
@@ -125,6 +130,7 @@ WIDGET_MAP: Dict[str, List[str]] = {
     "dose_gallons":           ["Dose (Engineered Systems)"],
     "garbage_disposal":       ["GDU Y/N/M"],
     "gdu_if_yes":             ["GDU if yes"],
+    "gdu_num_tanks":          ["# of Tanks (garbage disposal unit)"],
     "disposal_system_to_serve": ["Disposal System to Serve"],
     "num_bedrooms_opt1":      ["# of bedrooms for option 1 (disposal system to serve)"],
     "num_bedrooms_opt2":      ["# of bedrooms for option 2 (disposal system to serve)"],
@@ -135,6 +141,7 @@ WIDGET_MAP: Dict[str, List[str]] = {
     "disposal_field_size_unit": ["Disposal Field Size Measurement"],
     "design_flow_gpd":        ["gallons per day (design flow)"],
     "design_flow_type":       ["Design Flow"],
+    "design_flow_calculations": ["show calculations for \"other facilities\" (design flow)"],
     "profile_soil_data":      ["profile (soil data & design class)"],
     "condition_soil_data":    ["condition (soil data & design class)"],
     "observation_hole_number": ["observation hole # (soil data & design class)"],
@@ -144,9 +151,14 @@ WIDGET_MAP: Dict[str, List[str]] = {
     "pre_treatment_make1":    ["make #1 (pre-treatment)"],
     "pre_treatment_model1":   ["model #1 (pre-treatment)"],
     "pre_treatment_notes1":   ["Notes #1 (pre-treatment)"],
+    "pre_treatment_maint1":   ["Maintenance Contract #1 (pre-treatment)"],
     "pre_treatment_make2":    ["make #2 (pre-treatment)"],
     "pre_treatment_model2":   ["model #2 (pre-treatment)"],
     "pre_treatment_notes2":   ["Notes #2 (pre-treatment)"],
+    "pre_treatment_maint2":   ["Maintenance Contract #2 (pre-treatment)"],
+    "se_signature_pg2":       ["Site Evaluator Signature/ Initials (pg2)"],
+    "disposal_field_type_other": ["specify for other (disposal field type and size)"],
+    "disposal_system_other":  ["specify for other (disposal system to serve)"],
 
     # ── Page 3: Observation Hole 1 ────────────────────────────────────────────
     "oh1_number": [
@@ -314,28 +326,7 @@ WIDGET_MAP: Dict[str, List[str]] = {
         "Horizontal Scale (pg 4 grid)", "Horizontal Scale (pg 4 blank)",
     ],
 
-    # ── Additional dropdown/specify fields ─────────────────────────────────────
-    "gdu_num_tanks": [
-        "# of Tanks (garbage disposal unit)",
-    ],
-    "pre_treatment_maint1": [
-        "Maintenance Contract #1 (pre-treatment)",
-    ],
-    "pre_treatment_maint2": [
-        "Maintenance Contract #2 (pre-treatment)",
-    ],
-    "disposal_field_type_other": [
-        "specify for other (disposal field type and size)",
-    ],
-    "disposal_system_other": [
-        "specify for other (disposal system to serve)",
-    ],
-    "design_flow_calculations": [
-        "show calculations for \"other facilities\" (design flow)",
-    ],
-    "site_eval_name_printed": [
-        "Site Evaluator Name (Printed)",
-    ],
+    "site_eval_name_printed": ["Site Evaluator Name (Printed)"],
 }
 
 RADIO_OPTIONS: Dict[str, Dict[str, int]] = {
