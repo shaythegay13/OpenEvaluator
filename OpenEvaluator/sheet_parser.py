@@ -38,6 +38,7 @@ RAW_ROW: Dict[str, str] = {
     ),
     "Seasonal use":          "Year-round",
     "Shoreland zoning":       "",
+    "GPS Coordinates": "44'08'17.8\", 70'07'23.1\"",
     "Water supply and well": "existing drilled well, private, 125 ft.",
     "Soil summary at disposal area": (
         "brown fine sandy loam to 3 inches, "
@@ -94,6 +95,7 @@ ROBERTS_ROW: Dict[str, str] = {
     ),
     "Seasonal use":          "Year-round",
     "Shoreland zoning":       "",
+    "GPS Coordinates": "44'10'33.2\", 70'12'45.7\"",
     "Water supply and well": "new drilled well",
     "Soil summary at disposal area": (
         "brown fine sandy loam to 4 inches, "
@@ -276,15 +278,50 @@ def parse_soil_by_depth(raw: str) -> Dict[str, str]:
     }
 
 
+def _reverse_name_format(full_name: str) -> str:
+    """
+    Reverse name from 'FirstName LastName' to 'LastName, FirstName'.
+    Handles single names, hyphenated names, etc.
+    """
+    if not full_name:
+        return ""
+
+    name_parts = full_name.strip().split()
+    if len(name_parts) == 1:
+        return name_parts[0]
+
+    # Assume last part is surname
+    first_parts = name_parts[:-1]
+    last_part = name_parts[-1]
+    return f"{last_part}, {' '.join(first_parts)}"
+
+
+def _abbreviate_state(state_name: str) -> str:
+    """Convert full state name to 2-letter abbreviation."""
+    state_map = {
+        'maine': 'ME',
+        'new hampshire': 'NH',
+        'vermont': 'VT',
+        'massachusetts': 'MA',
+        'rhode island': 'RI',
+        'connecticut': 'CT',
+        'new york': 'NY',
+        'new jersey': 'NJ',
+        'pennsylvania': 'PA',
+    }
+    return state_map.get(state_name.lower().strip(), state_name)
+
+
 def parse_client_address(raw: str) -> Dict[str, str]:
     """
     'Kristen Marquis, [phone], [address]'
-    → owner_name='Kristen Marquis', phone='', mailing_street='[address]' (or extracted from parts[2])
+    → owner_name='Marquis, Kristen', phone='', mailing_street='[address]'
     """
     parts = [p.strip() for p in raw.split(",")]
     while len(parts) < 3:
         parts.append("")
-    owner_name = parts[0] if parts[0].lower() != "empty" else ""
+    owner_name_raw = parts[0] if parts[0].lower() != "empty" else ""
+    owner_name = _reverse_name_format(owner_name_raw)
     # parts[1] = phone (may be empty)
     # parts[2] = full mailing address or "empty"
     mailing_street = parts[2] if parts[2].lower() != "empty" else parts[1] if parts[1].lower() != "empty" else ""
@@ -555,26 +592,70 @@ def parse_foundation_type(raw: str) -> Dict[str, str]:
 def parse_variance_types(raw: str) -> Dict[str, str]:
     """
     Parse variance declarations from form response.
-    
+
     Input: 'none' or comma-separated list like 'well setback, building setback'
     Output: variance_types = list of variance types declared
            variance_types_str = comma-separated string for storage
     """
     if not raw:
         return {"variance_types": "", "variance_types_list": []}
-    
+
     raw_lower = raw.lower().strip()
     if raw_lower == "none" or raw_lower == "":
         return {"variance_types": "", "variance_types_list": []}
-    
+
     # Split on comma, strip each, keep as list
     types = [t.strip() for t in raw.split(",")]
     types = [t for t in types if t and t.lower() != "none"]  # Filter empty and 'none'
-    
+
     return {
         "variance_types": ", ".join(types),
         "variance_types_list": types,
     }
+
+
+def parse_gps_coordinates(raw: str) -> Dict[str, str]:
+    """
+    Parse GPS coordinates in apostrophe-delimited format.
+
+    Input: "44'08'17.8\", 70'07'23.1\""
+    Output: latitude_deg='44', latitude_min='08', latitude_sec='17.8',
+           longitude_deg='70', longitude_min='07', longitude_sec='23.1'
+    """
+    result = {}
+    if not raw:
+        return {
+            "latitude_deg": "", "latitude_min": "", "latitude_sec": "",
+            "longitude_deg": "", "longitude_min": "", "longitude_sec": "",
+        }
+
+    # Match: DD'MM'SS.S" format (with optional quotes, spaces, etc.)
+    # Pattern: digits, apostrophe, digits, apostrophe, digits with optional decimals
+    coord_pattern = r"(\d+)['\s]+(\d+)['\s]+(\d+(?:\.\d+)?)"
+
+    coords = re.findall(coord_pattern, raw)
+
+    if len(coords) >= 2:
+        # First match = latitude, second = longitude
+        lat_deg, lat_min, lat_sec = coords[0]
+        lon_deg, lon_min, lon_sec = coords[1]
+
+        result["latitude_deg"] = lat_deg
+        result["latitude_min"] = lat_min
+        result["latitude_sec"] = lat_sec
+        result["longitude_deg"] = lon_deg
+        result["longitude_min"] = lon_min
+        result["longitude_sec"] = lon_sec
+    else:
+        # Default to empty if parsing fails
+        result["latitude_deg"] = ""
+        result["latitude_min"] = ""
+        result["latitude_sec"] = ""
+        result["longitude_deg"] = ""
+        result["longitude_min"] = ""
+        result["longitude_sec"] = ""
+
+    return result
 
 
 def parse_scales(scale_page3: str, scale_page4_top: str, scale_page4_bottom_vert: str, scale_page4_bottom_horiz: str) -> Dict[str, str]:
@@ -787,6 +868,10 @@ def parse_sheet_row(row: Optional[Dict[str, str]] = None) -> Dict[str, str]:
 
     # ── 7. Shoreland zoning ──────────────────────────────────────────────
     fields["shoreland_zoning"] = raw.get("Shoreland zoning", "").strip()
+
+    # ── 7b. GPS Coordinates ───────────────────────────────────────────────
+    gps = parse_gps_coordinates(raw.get("GPS Coordinates", ""))
+    fields.update(gps)
 
     # ── 8. Water supply ───────────────────────────────────────────────────
     ws = parse_water_supply(raw.get("Water supply and well", ""))

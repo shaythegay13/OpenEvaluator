@@ -134,12 +134,8 @@ def _determine_system_type_fields(disposal_system_type: str) -> Dict[str, str]:
     # Set only the relevant system type fields
     if is_proprietary:
         result['disposal_field_type'] = 'Proprietary Device'
-        if 'eljen' in t or 'indrain' in t or 'gsf' in t:
-            result['proprietary_device_opt'] = 'Eljen InDrain'
-        elif 'infiltrator' in t:
-            result['proprietary_device_opt'] = 'Infiltrator'
-        elif 'presby' in t:
-            result['proprietary_device_opt'] = 'Presby'
+        # Note: proprietary_device_opt should be set based on layout data (Cluster Array, Linear, etc.)
+        # Not setting hardcoded invalid values here - let adapted values take precedence
         # Leave all other system checkboxes blank
         result['non_eng_field_check'] = 'X'
     elif is_gravel:
@@ -181,11 +177,10 @@ def _determine_pretreatment_fields(disposal_system_type: str) -> Dict[str, str]:
     has_pretreat = 'pre-treatment' in t or 'pretreat' in t or 'septic tank' in t
 
     if has_pump:
-        result['effluent_pump'] = 'X'
+        result['effluent_pump'] = 'Yes'
         result['dose_gallons'] = '300'  # Placeholder — should come from design flow
-    else:
-        result['effluent_pump'] = ''
-        result['dose_gallons'] = ''
+    # Note: If no pump, don't override the 'No' value already set in adapted
+    # So we just skip setting it here
 
     if has_gdu:
         result['garbage_disposal'] = 'Y'
@@ -248,6 +243,8 @@ def _determine_system_to_serve(use: str) -> str:
     return 'Single Family Dwelling Unit'
 
 def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
+    from sheet_parser import _abbreviate_state
+
     adapted = {}
 
     # ── CONTACT INFORMATION ──
@@ -259,16 +256,28 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
         adapted['owner_name_pg2'] = owner
         adapted['applicant_name'] = sheet_fields.get('applicant_name', owner)
 
-    # Owner contact info
-    adapted['owner_phone'] = sheet_fields.get('owner_phone', sheet_fields.get('phone', ''))
-    adapted['owner_email'] = sheet_fields.get('owner_email', sheet_fields.get('email', ''))
-    
+    # Owner contact info - use evaluator info if owner info not available
+    owner_phone = sheet_fields.get('owner_phone', sheet_fields.get('phone', ''))
+    owner_email = sheet_fields.get('owner_email', sheet_fields.get('email', ''))
+
+    # Fall back to evaluator contact if owner contact not provided
+    if not owner_phone:
+        owner_phone = sheet_fields.get('evaluator_phone', '')
+    if not owner_email:
+        owner_email = sheet_fields.get('evaluator_email', '')
+
+    adapted['owner_phone'] = owner_phone
+    adapted['owner_email'] = owner_email
+
     # Mailing address (from property location when not separately provided)
     site_addr = sheet_fields.get('site_address', '')
     town = sheet_fields.get('town', '')
     state = sheet_fields.get('mailing_state', '')
     zip_code = sheet_fields.get('mailing_zip', '')
-    
+
+    # Abbreviate state name to 2-letter code
+    state_abbr = _abbreviate_state(state) if state else ''
+
     # Split street number and name
     street_match = re.match(r'^(\d+)\s+(.+)$', site_addr)
     if street_match:
@@ -277,16 +286,20 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
     else:
         adapted['street_number'] = ''
         adapted['street_name'] = site_addr
-    
-    adapted['mailing_street'] = ''  # Often blank - different from physical
+
+    # Mailing street defaults to site address
+    adapted['mailing_street'] = site_addr
     adapted['mailing_city'] = town
-    adapted['mailing_state'] = state
+    adapted['mailing_state'] = state_abbr
     adapted['mailing_zip'] = zip_code
     adapted['town'] = town
-    
-    # Full address line for page 2
-    if site_addr and town:
-        adapted['address_pg2'] = f"{site_addr}, {town}, {state} {zip_code}"
+
+    # Full address line for page 2 - truncate to street only to avoid overflow
+    # (street number + street name, no city/state/zip)
+    if site_addr:
+        adapted['address_pg2'] = site_addr
+    elif town:
+        adapted['address_pg2'] = town
 
     # ── MAP / LOT / ACREAGE ──
     adapted['map_number'] = sheet_fields.get('map_number', '')
@@ -324,30 +337,71 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
     adapted['disposal_system_to_serve'] = _determine_system_to_serve(use_raw)
     adapted['num_bedrooms_opt1'] = sheet_fields.get('bedrooms', sheet_fields.get('num_bedrooms', ''))
     
-    # Disposal field type
+    # Disposal field type & system detection
+    # Maps to the 12 disposal system type radio options on page 1
     dst = sheet_fields.get('disposal_system_type', '')
     dst_lower = dst.lower()
+
+    # Determine which radio option to select (12 total options)
+    disposal_system_radio = ''
+    if 'complete' in dst_lower and ('non' in dst_lower or 'engineered' in dst_lower):
+        disposal_system_radio = 'Complete Non-Engineered System'
+    elif 'primitive' in dst_lower or 'limited' in dst_lower:
+        disposal_system_radio = 'Primitive/ Limited System'
+    elif 'alternative' in dst_lower or 'alt' in dst_lower or 'composting' in dst_lower or 'toilet' in dst_lower:
+        disposal_system_radio = 'Alternative Toilet'
+    elif 'non' in dst_lower and 'engineered' in dst_lower and 'tank' in dst_lower:
+        disposal_system_radio = 'Non-Engineered Treatment Tank'
+    elif 'holding' in dst_lower or 'holding tank' in dst_lower:
+        disposal_system_radio = 'Holding Tank'
+    elif 'non' in dst_lower and 'engineered' in dst_lower and 'field' in dst_lower:
+        disposal_system_radio = 'Non-Engineered Disposal Field'
+    elif 'complete' in dst_lower and 'engineered' in dst_lower:
+        disposal_system_radio = 'Complete Engineered System'
+    elif 'engineered' in dst_lower and 'tank' in dst_lower:
+        disposal_system_radio = 'Engineered Tank(s) Only'
+    elif 'engineered' in dst_lower and 'field' in dst_lower:
+        disposal_system_radio = 'Engineered Field(s) Only'
+    elif 'pre' in dst_lower or 'pretreat' in dst_lower:
+        if 'tank' in dst_lower:
+            disposal_system_radio = 'Pre-Treatment Tank'
+        else:
+            disposal_system_radio = 'Pre-Treatment Component'
+    else:
+        # Default based on proprietary device brand
+        if 'eljen' in dst_lower or 'indrain' in dst_lower or 'infiltrator' in dst_lower:
+            disposal_system_radio = 'Non-Engineered Disposal Field'
+        else:
+            disposal_system_radio = 'Non-Engineered Disposal Field'  # Default
+
+    if disposal_system_radio:
+        adapted['disposal_system_type'] = disposal_system_radio
+
+    # For page 2: Disposal field type (different from page 1 system type)
     if 'eljen' in dst_lower or 'indrain' in dst_lower or 'gsf' in dst_lower:
         adapted['disposal_field_type'] = 'Proprietary Device'
-        adapted['proprietary_device_opt'] = 'Eljen InDrain'
+        # proprietary_device_opt will be set later based on layout
+    elif 'infiltrator' in dst_lower:
+        adapted['disposal_field_type'] = 'Proprietary Device'
+        # proprietary_device_opt will be set later based on layout
     elif 'gravel' in dst_lower or 'stone' in dst_lower or 'pipe' in dst_lower:
         adapted['disposal_field_type'] = 'Gravel/Stone'
-    elif 'chamber' in dst_lower or 'infiltrator' in dst_lower:
-        adapted['disposal_field_type'] = 'Chamber System'
+    elif 'chamber' in dst_lower:
+        adapted['disposal_field_type'] = 'Proprietary Device'
     elif 'mound' in dst_lower:
         adapted['disposal_field_type'] = 'Mound'
     elif 'at' in dst_lower or 'advanced' in dst_lower:
         adapted['disposal_field_type'] = 'Advanced Treatment Unit'
     else:
         adapted['disposal_field_type'] = 'Proprietary Device'
-        adapted['proprietary_device_opt'] = dst[:30]
 
     # Effluent pump detection
     if 'pump' in dst_lower or 'ejector' in dst_lower:
-        adapted['effluent_pump'] = 'X'
+        adapted['effluent_pump'] = 'Yes'
         adapted['dose_gallons'] = sheet_fields.get('design_flow_gallons', '')
     else:
-        adapted['effluent_pump'] = ''
+        # Default to "No" when system doesn't require pump
+        adapted['effluent_pump'] = 'No'
         adapted['dose_gallons'] = ''
 
     # Design flow
@@ -374,18 +428,42 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
         adapted['shoreland_zoning_yn'] = 'X'
 
     # ── GPS & COORDINATES ──
+    adapted['latitude_deg'] = sheet_fields.get('latitude_deg', '')
+    adapted['latitude_min'] = sheet_fields.get('latitude_min', '')
+    adapted['latitude_sec'] = sheet_fields.get('latitude_sec', '')
+    adapted['longitude_deg'] = sheet_fields.get('longitude_deg', '')
+    adapted['longitude_min'] = sheet_fields.get('longitude_min', '')
+    adapted['longitude_sec'] = sheet_fields.get('longitude_sec', '')
     adapted['gps_margin_error'] = '30'  # Hardcoded per Maine requirement
 
     # ── SOIL DATA (Page 2) ──
-    # Limiting factor
-    adapted['limiting_factor_depth'] = sheet_fields.get('deepest_restrictive_layer_hole1', '')
+    # Limiting factor depth - extract just the number from water table depth
+    lf_depth_raw = sheet_fields.get('water_table_depth_hole1', '')
+    if lf_depth_raw:
+        import re as regex
+        match = regex.search(r'(\d+)', str(lf_depth_raw))
+        adapted['limiting_factor_depth'] = match.group(1) if match else str(lf_depth_raw)
+    else:
+        adapted['limiting_factor_depth'] = ''
+
     adapted['limiting_factor_elevation'] = sheet_fields.get('water_table_depth_hole1', '')
-    adapted['observation_hole_number'] = 'OH-1, OH-2'
-    
-    # Profile / condition
+
+    # Observation hole number - extract first digit only
+    oh_raw = sheet_fields.get('observation_hole_number', '')
+    if oh_raw:
+        import re as regex
+        match = regex.search(r'\d', oh_raw)
+        adapted['observation_hole_number'] = match.group(0) if match else oh_raw[:1]
+    else:
+        adapted['observation_hole_number'] = '1'
+
+    # Profile / condition - truncate soil description to main type (1-2 words)
     soil_desc = sheet_fields.get('soil_type', '')
     if soil_desc:
-        adapted['profile_soil_data'] = soil_desc
+        # Extract just the main soil classification (first 1-2 words, typically color + texture)
+        words = soil_desc.split()
+        truncated = ' '.join(words[:2]) if len(words) > 1 else words[0] if words else 'Sandy Loam'
+        adapted['profile_soil_data'] = truncated
         adapted['condition_soil_data'] = sheet_fields.get('deepest_restrictive_layer_hole1', '')
 
     # ── SOIL TABLE (Page 3) ──
@@ -450,12 +528,45 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
 
     # ── FIELD LAYOUT & DISTANCES ──
     field_size = sheet_fields.get('planned_field_size', '')
-    if field_size:
+
+    # Use parsed field layout data for disposal field size
+    area_sqft = sheet_fields.get('area_sqft', '')
+    cluster_length_ft = sheet_fields.get('cluster_length_ft', '')
+    cluster_width_ft = sheet_fields.get('cluster_width_ft', '')
+    brand = sheet_fields.get('brand', '').lower() if sheet_fields.get('brand') else ''
+
+    # Determine disposal field size and unit
+    if area_sqft:
+        adapted['disposal_field_size'] = area_sqft
+        adapted['disposal_field_size_unit'] = 'sq ft'
+    elif cluster_length_ft and cluster_width_ft:
+        # Calculate area if not already calculated
+        try:
+            area = float(cluster_width_ft) * float(cluster_length_ft)
+            adapted['disposal_field_size'] = str(int(area))
+            adapted['disposal_field_size_unit'] = 'sq ft'
+        except (ValueError, TypeError):
+            pass
+    elif field_size:
         adapted['disposal_field_size'] = field_size[:40]
-        adapted['disposal_field_size_unit'] = 'Sq Ft'
-    
+        adapted['disposal_field_size_unit'] = 'sq ft'
+
+    # For Proprietary Devices, select array type based on layout
+    # Cluster Array (2D), Linear (1D), Regular (standard)
+    if 'eljen' in dst_lower or 'infiltrator' in dst_lower:
+        num_rows = sheet_fields.get('num_rows', '')
+        if num_rows:
+            try:
+                rows = int(num_rows)
+                if rows > 1:
+                    adapted['proprietary_device_opt'] = 'Cluster Array'
+                else:
+                    adapted['proprietary_device_opt'] = 'Linear'
+            except (ValueError, TypeError):
+                adapted['proprietary_device_opt'] = 'Regular'
+
     # Pass structured field layout data through for drawing generator
-    for layout_key in ['num_rows', 'mods_per_row', 'total_modules', 
+    for layout_key in ['num_rows', 'mods_per_row', 'total_modules',
                         'cluster_width_ft', 'cluster_length_ft', 'area_sqft', 'brand']:
         if layout_key in sheet_fields and sheet_fields[layout_key]:
             adapted[layout_key] = sheet_fields[layout_key]
@@ -466,8 +577,25 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
             adapted[dist_key] = sheet_fields[dist_key]
 
     # ── TREATMENT TANK INFO ──
-    # Extract tank info from site notes
+    # Extract tank info from site notes and septic tank setup
     notes = sheet_fields.get('site_notes', '')
+    septic_tank_setup = sheet_fields.get('septic_tank_setup', '')
+
+    # Detect tank material from setup description
+    tank_material_text = (notes + ' ' + septic_tank_setup).lower()
+    if 'plastic' in tank_material_text:
+        adapted['treatment_tanks'] = 'Plastic'
+    elif 'concrete' in tank_material_text or 'cement' in tank_material_text:
+        adapted['treatment_tanks'] = 'Concrete'
+    elif 'fiberglass' in tank_material_text or 'gi' in tank_material_text or 'galvanized' in tank_material_text:
+        adapted['treatment_tanks'] = 'Other'
+    else:
+        # Default or try to detect from context
+        if 'new' in tank_material_text or 'install' in tank_material_text:
+            adapted['treatment_tanks'] = 'Plastic'  # New tanks typically plastic
+        elif 'existing' in tank_material_text:
+            adapted['treatment_tanks'] = 'Concrete'  # Existing tanks often concrete
+
     tank_match = None
     if 'tank' in notes.lower():
         cap_match = re.search(r'([\d,]+)\s*gallon', notes)
@@ -476,11 +604,40 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
             adapted['tank_cap_gal'] = cap_match.group(1)
             adapted['tank_regular_check'] = 'X'
         if 'existing' in notes.lower() or 'expose' in notes.lower():
-            adapted['treatment_tanks'] = 'X'
+            pass  # Already set by material detection above
 
     # Tank total/count
     adapted['tank_total_new'] = sheet_fields.get('num_tanks', '1')
     adapted['tank_notes'] = sheet_fields.get('septic_tank_notes', '')
+
+    # ── VARIANCE REQUIREMENTS ──
+    variance_types = sheet_fields.get('variance_types', '')
+    variance_types_list = sheet_fields.get('variance_types_list', [])
+
+    if not variance_types or variance_types.lower() == 'none':
+        # No variances requested
+        adapted['variance_check'] = ''
+        adapted['fee_variance'] = ''
+        adapted['variance_requirement'] = 'No Rule Variance'
+    else:
+        # Variance requested
+        adapted['variance_check'] = 'X'
+        adapted['fee_variance'] = 'X'
+
+        # Map specific variance types to form options
+        # Valid options: No Rule Variance, First Time System, Replacement System, Minimum Lot Size, Seasonal Conversion
+        if isinstance(variance_types_list, list):
+            var_str = ' '.join(variance_types_list).lower()
+            if 'lot size' in var_str or 'minimum' in var_str:
+                adapted['variance_requirement'] = 'Minimum Lot Size'
+            elif 'replacement' in var_str:
+                adapted['variance_requirement'] = 'Replacement System'
+            elif 'seasonal' in var_str:
+                adapted['variance_requirement'] = 'Seasonal Conversion'
+            else:
+                # For well setback, building setback, property line, etc. — no direct mapping
+                # Default to No Rule Variance and let fee_variance checkbox indicate variance requested
+                adapted['variance_requirement'] = 'No Rule Variance'
 
     # ── WELL & BUILDING INFO ──
     adapted['well_depth'] = sheet_fields.get('well_depth', '')
