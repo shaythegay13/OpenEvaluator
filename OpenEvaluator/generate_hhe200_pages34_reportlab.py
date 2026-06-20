@@ -286,6 +286,94 @@ class HHE200ReportLabGenerator:
 
         return y_position - table_height - 0.2 * inch
 
+    def draw_construction_elevation_tables(self, c: canvas.Canvas, fields: Dict[str, Any], y_position: float) -> float:
+        """
+        Draw construction/elevation detail tables in middle of page 4.
+
+        Args:
+            c: ReportLab canvas
+            fields: Form data dict with tank and pipe specs
+            y_position: Starting y position
+
+        Returns:
+            New y position after tables
+        """
+        x_start = self.MARGIN_LEFT
+        table_width = self.PAGE_WIDTH - 2 * self.MARGIN_LEFT
+        left_table_width = (table_width - 0.2 * inch) / 2
+        right_x = x_start + left_table_width + 0.1 * inch
+
+        table_height = 0.7 * inch
+        header_height = 0.2 * inch
+        row_height = (table_height - header_height) / 2
+
+        # LEFT TABLE: Tank/Distribution Box Specs
+        c.setLineWidth(1)
+        c.setStrokeColor(self.BLACK)
+        c.setFillColor(colors.HexColor("#E8E8E8"))
+        c.rect(x_start, y_position - table_height, left_table_width, table_height, fill=1, stroke=1)
+
+        # Left table header
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(self.BLACK)
+        c.drawString(x_start + 0.05 * inch, y_position - 0.15 * inch, "TANK / DISTRIBUTION BOX")
+
+        # Left table grid
+        c.setLineWidth(0.5)
+        col1_x = x_start + left_table_width * 0.33
+        col2_x = x_start + left_table_width * 0.66
+        c.line(col1_x, y_position - header_height, col1_x, y_position - table_height)
+        c.line(col2_x, y_position - header_height, col2_x, y_position - table_height)
+        c.line(x_start, y_position - header_height - row_height, x_start + left_table_width, y_position - header_height - row_height)
+
+        # Left table subheaders
+        c.setFont("Helvetica", 7)
+        c.drawString(x_start + 0.05 * inch, y_position - header_height - 0.08 * inch, "Type")
+        c.drawString(col1_x + 0.05 * inch, y_position - header_height - 0.08 * inch, "Capacity")
+        c.drawString(col2_x + 0.05 * inch, y_position - header_height - 0.08 * inch, "Elevation")
+
+        # Left table data
+        tank_type = fields.get("tank_type", "Concrete")
+        tank_capacity = fields.get("tank_capacity", "1000 gal")
+        tank_elevation = fields.get("tank_elevation", "TBD")
+
+        c.setFont("Helvetica", 7)
+        c.drawString(x_start + 0.05 * inch, y_position - header_height - row_height - 0.08 * inch, tank_type[:20])
+        c.drawString(col1_x + 0.05 * inch, y_position - header_height - row_height - 0.08 * inch, tank_capacity[:15])
+        c.drawString(col2_x + 0.05 * inch, y_position - header_height - row_height - 0.08 * inch, tank_elevation[:15])
+
+        # RIGHT TABLE: Pipe Specs
+        c.setLineWidth(1)
+        c.setStrokeColor(self.BLACK)
+        c.setFillColor(colors.HexColor("#E8E8E8"))
+        c.rect(right_x, y_position - table_height, left_table_width, table_height, fill=1, stroke=1)
+
+        # Right table header
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(self.BLACK)
+        c.drawString(right_x + 0.05 * inch, y_position - 0.15 * inch, "PIPE SPECS")
+
+        # Right table grid
+        c.setLineWidth(0.5)
+        col1_x_r = right_x + left_table_width * 0.5
+        c.line(col1_x_r, y_position - header_height, col1_x_r, y_position - table_height)
+        c.line(right_x, y_position - header_height - row_height, right_x + left_table_width, y_position - header_height - row_height)
+
+        # Right table subheaders
+        c.setFont("Helvetica", 7)
+        c.drawString(right_x + 0.05 * inch, y_position - header_height - 0.08 * inch, "Size")
+        c.drawString(col1_x_r + 0.05 * inch, y_position - header_height - 0.08 * inch, "Slope")
+
+        # Right table data
+        pipe_size = fields.get("pipe_size", "4\"")
+        pipe_slope = fields.get("pipe_slope", "1/8\"")
+
+        c.setFont("Helvetica", 7)
+        c.drawString(right_x + 0.05 * inch, y_position - header_height - row_height - 0.08 * inch, pipe_size[:15])
+        c.drawString(col1_x_r + 0.05 * inch, y_position - header_height - row_height - 0.08 * inch, pipe_slope[:15])
+
+        return y_position - table_height - 0.15 * inch
+
     def draw_site_location_inset_and_notes(self, c: canvas.Canvas, y_position: float) -> float:
         """
         Draw site location inset map (top) and disclaimer notes (bottom) on right sidebar of page 3.
@@ -593,6 +681,9 @@ class HHE200ReportLabGenerator:
             self.overlay_sketch_at_scale(c, sketch_path, self.MARGIN_LEFT, y, system_width, system_height, scale_top)
 
         y -= (system_height + 0.15 * inch)
+
+        # Construction/elevation tables
+        y = self.draw_construction_elevation_tables(c, self.fields, y)
 
         # Notes section
         c.setFont("Helvetica-Bold", 9)
