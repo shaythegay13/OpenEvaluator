@@ -286,6 +286,93 @@ class HHE200ReportLabGenerator:
 
         return y_position - table_height - 0.2 * inch
 
+    def draw_site_location_inset_and_notes(self, c: canvas.Canvas, y_position: float) -> float:
+        """
+        Draw site location inset map (top) and disclaimer notes (bottom) on right sidebar of page 3.
+
+        Args:
+            c: ReportLab canvas
+            y_position: Starting y position (top of inset box)
+
+        Returns:
+            New y position after both boxes
+        """
+        sidebar_x = self.PAGE_WIDTH - self.MARGIN_RIGHT - 1.6 * inch
+        sidebar_width = 1.5 * inch
+
+        # Site location inset (top)
+        inset_y = y_position
+        inset_height = 1.6 * inch
+
+        # Draw inset background (gray)
+        c.setLineWidth(1)
+        c.setStrokeColor(self.BLACK)
+        c.setFillColor(colors.HexColor("#F2F2F2"))
+        c.rect(sidebar_x, inset_y - inset_height, sidebar_width, inset_height, fill=1, stroke=1)
+
+        # "SITE LOCATION" label
+        c.setFont("Helvetica-Bold", 10)
+        c.setFillColor(self.BLACK)
+        c.drawString(sidebar_x + 0.1 * inch, inset_y - 0.25 * inch, "SITE")
+        c.drawString(sidebar_x + 0.1 * inch, inset_y - 0.45 * inch, "LOCATION")
+
+        # Asterisk placeholder (represents map)
+        c.setFont("Helvetica", 24)
+        c.drawString(sidebar_x + 0.55 * inch, inset_y - 0.85 * inch, "*")
+
+        inset_bottom = inset_y - inset_height - 0.1 * inch
+
+        # Disclaimer notes block (below inset)
+        notes_y = inset_bottom
+        notes_height = 2.0 * inch
+
+        # Draw notes background (white)
+        c.setLineWidth(1)
+        c.setFillColor(self.WHITE)
+        c.setStrokeColor(self.BLACK)
+        c.rect(sidebar_x, notes_y - notes_height, sidebar_width, notes_height, fill=1, stroke=1)
+
+        # Notes text - disclaimer
+        disclaimer_text = (
+            "NOTE: LOCATION OF SEPTIC SYSTEM HAS BEEN SITED ON THE PROPERTY BASED UPON "
+            "BOUNDARY LINE/PROPERTY INFORMATION PROVIDED BY OWNER OR OWNER'S AGENT. "
+            "NO INDEPENDENT VERIFICATION OF BOUNDARY LINE LOCATIONS HAS BEEN MADE BY THIS "
+            "SITE EVALUATOR. PROFESSIONAL BOUNDARY SURVEYS HAVE BEEN VERIFIED BY "
+            "OWNER/INSTALLER PRIOR TO SYSTEM INSTALLATION. ANY DISCREPANCY FROM THAT "
+            "SHOWN SHALL BE IMMEDIATELY BROUGHT TO THE ATTENTION OF THE DESIGN SITE "
+            "EVALUATOR PRIOR TO BEGINNING ANY WORK."
+        )
+
+        c.setFont("Helvetica", 7)
+        c.setFillColor(self.BLACK)
+
+        # Break text into lines that fit in the box
+        text_x = sidebar_x + 0.08 * inch
+        text_y = notes_y - 0.12 * inch
+        line_height = 0.09 * inch
+
+        # Simple word-wrap implementation
+        words = disclaimer_text.split()
+        current_line = ""
+        line_count = 0
+        max_lines = 20  # Safety limit
+
+        for word in words:
+            test_line = current_line + (" " if current_line else "") + word
+            # Rough estimate: ~11 characters fit in the width at 7pt
+            if len(test_line) > 28 or line_count >= max_lines - 1:
+                if current_line:
+                    c.drawString(text_x, text_y - (line_count * line_height), current_line)
+                    line_count += 1
+                current_line = word
+            else:
+                current_line = test_line
+
+        if current_line and line_count < max_lines:
+            c.drawString(text_x, text_y - (line_count * line_height), current_line)
+
+        return notes_y - notes_height - 0.1 * inch
+
     def draw_signature_block(self, c: canvas.Canvas, y_position: float, page_num: int = 3):
         """Draw signature block at bottom of page."""
         x_start = self.MARGIN_LEFT
@@ -446,6 +533,10 @@ class HHE200ReportLabGenerator:
         # Overlay sketch
         if sketch_path:
             self.overlay_sketch_at_scale(c, sketch_path, self.MARGIN_LEFT, y, plan_width, plan_height, scale_factor)
+
+        # Draw site location inset and notes on right sidebar (at same y level as plan)
+        sidebar_y = y  # Start at top of site plan area
+        self.draw_site_location_inset_and_notes(c, sidebar_y)
 
         y -= (plan_height + 0.15 * inch)
 
