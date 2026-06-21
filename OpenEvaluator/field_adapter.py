@@ -511,7 +511,11 @@ def adapt_sheet_fields_to_acro(sheet_fields: Dict[str, str]) -> Dict[str, str]:
             if len(soil_layers) > 2:
                 adapted['oh1_condition'] = soil_layers[2]['soil']
                 adapted['oh2_condition'] = soil_layers[2]['soil']
-    
+
+    # ── PHASE 2: SOIL PIT FIELDS (26 fields) ──
+    pit_fields = _map_soil_pit_fields(sheet_fields)
+    adapted.update(pit_fields)
+
     # Water table depth → limiting factor elevation
     wtd = sheet_fields.get('water_table_depth_hole1', '')
     if wtd:
@@ -848,5 +852,59 @@ def _breakout_soil_data(fields: Dict[str, str]) -> Dict[str, str]:
     if num_match:
         result["oh1_organic_thickness"] = num_match.group(1)
         result["oh2_organic_thickness"] = num_match.group(1)
+
+    return result
+
+
+def _map_soil_pit_fields(fields: Dict[str, str]) -> Dict[str, str]:
+    """
+    Map Phase 2 soil pit fields (26 total) from sheet_parser to acro_fill WIDGET_MAP.
+
+    Input: soil_pit1_observation_hole_number, soil_pit1_textures, etc.
+    Output: WIDGET_MAP-compatible keys like "Observation Hole_table1", "Textures_table1", etc.
+    """
+    result: Dict[str, str] = {}
+
+    # Mapping for Pit 1 → table1 (Observation Hole 1)
+    pit1_mapping = {
+        "soil_pit1_observation_hole_number": "Observation Hole_table1",
+        "soil_pit1_textures":                "Textures_table1",
+        "soil_pit1_consistence":             "Consistence_table1",
+        "soil_pit1_color":                   "Color_table1",
+        "soil_pit1_redox_features":          "Redox Features_table1",
+        "soil_pit1_profile":                 "Profile_table1",
+        "soil_pit1_condition":               "Condition_table1",
+        "soil_pit1_slope":                   "Slope_table1",
+        "soil_pit1_limiting_factor":         "Limiting Factor_table1",
+        "soil_pit1_restrictive_layer":       "Restrictive Layer_table1",
+        "soil_pit1_bedrock":                 "Bedrock_table1",
+        # soil_pit1_groundwater and soil_pit1_pit_depth are for display/cross-section only
+    }
+
+    # Mapping for Pit 2 → table2 (Observation Hole 2)
+    pit2_mapping = {
+        "soil_pit2_observation_hole_number": "Observation Hole_table2",
+        "soil_pit2_textures":                "Textures_table2",
+        "soil_pit2_consistence":             "Consistence_table2",
+        "soil_pit2_color":                   "Color_table2",
+        "soil_pit2_redox_features":          "Redox Features_table2",
+        "soil_pit2_profile":                 "Profile_table2",
+        "soil_pit2_condition":               "Condition_table2",
+        "soil_pit2_slope":                   "Slope_table2",
+        "soil_pit2_limiting_factor":         "Limiting Factor_table2",
+        "soil_pit2_restrictive_layer":       "Restrictive Layer_table2",
+        "soil_pit2_bedrock":                 "Bedrock_table2",
+    }
+
+    # Apply Pit 1 mapping
+    for src_key, widget_key in pit1_mapping.items():
+        if src_key in fields and fields[src_key]:
+            result[widget_key] = fields[src_key]
+
+    # Apply Pit 2 mapping (only if Pit 2 has data)
+    if fields.get("soil_pit2_observation_hole_number") or fields.get("soil_pit2_textures"):
+        for src_key, widget_key in pit2_mapping.items():
+            if src_key in fields and fields[src_key]:
+                result[widget_key] = fields[src_key]
 
     return result

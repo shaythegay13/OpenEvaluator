@@ -236,46 +236,184 @@ def parse_water_supply(raw: str) -> Dict[str, str]:
 
 def parse_soil_by_depth(raw: str) -> Dict[str, str]:
     """
-    Parse soil description into layers by depth.
+    Parse soil description into layers by depth, detecting pit/boring markers.
+
     Raw: 'brown fine sandy loam to 3 inches,
           yellowish brown fine sandy loam from 3 inches to 24 inches,
           olive gray fine sandy loam to pit depth of 36 inches'
 
-    Returns soil profile fields for the field_map.
-    For HHE-200, we collapse this to a single readable soil description
-    string on page 3.  Separate observation-hole layers are not
-    individually tracked in the source data, so we populate
-    soil_classification_hole1 / hole2 with the dominant soil type
-    and deepest_restrictive_layer_* with the limiting factor.
+    OR with pit markers:
+    'Test Pit 1: brown fine sandy loam to 3 inches, ...'
+    'Test Pit 2: ...'
+
+    Returns 26 structured soil fields (13 per pit × 2):
+    - soil_pit1_observation_hole_number, soil_pit1_textures, soil_pit1_consistence, etc.
+    - soil_pit2_* (empty if no Pit 2 detected)
+    - Also returns backward-compatible fields for non-pit parsing
     """
-    layers = []
-    # Split on comma and track depth ranges
-    segments = [s.strip() for s in raw.split(",")]
-    for seg in segments:
-        depth_m = re.search(r"(\d+)\s*(?:to|-)\s*(\d+)\s*inches?", seg, re.IGNORECASE)
-        single_m = re.search(r"to\s*(\d+)\s*inches?", seg, re.IGNORECASE)
-        if depth_m:
-            depth_range = f"{depth_m.group(1)}-{depth_m.group(2)} in"
-        elif single_m:
-            depth_range = f"0-{single_m.group(1)} in"
+    result = {}
+
+    # Detect pit/boring markers: "Test Pit 1:", "Test Pit 2:", "Test Boring 1:", etc.
+    pit_pattern = r"(?:test\s+)?(?:pit|boring|observation\s+hole)\s+([12])\s*:\s*([^]*?)(?=(?:test\s+)?(?:pit|boring|observation\s+hole)\s+[12]\s*:|$)"
+    pit_matches = re.findall(pit_pattern, raw, re.IGNORECASE | re.DOTALL)
+
+    pits_found = {}
+    for pit_num, pit_text in pit_matches:
+        pits_found[int(pit_num)] = pit_text.strip()
+
+    # If no pit markers found, treat entire text as Pit 1
+    if not pits_found:
+        pits_found[1] = raw
+
+    # Parse each pit
+    for pit_num in [1, 2]:
+        pit_text = pits_found.get(pit_num, "")
+        pit_prefix = f"soil_pit{pit_num}_"
+
+        if pit_text:
+            # Extract layers from pit (comma-delimited)
+            layers = []
+            segments = [s.strip() for s in pit_text.split(",")]
+
+            for seg in segments:
+                # Extract depth
+                depth_m = re.search(r"(\d+)\s*(?:to|-)\s*(\d+)\s*inches?", seg, re.IGNORECASE)
+                single_m = re.search(r"to\s*(\d+)\s*inches?", seg, re.IGNORECASE)
+                if depth_m:
+                    depth = f"{depth_m.group(1)}-{depth_m.group(2)}"
+                elif single_m:
+                    depth = f"0-{single_m.group(1)}"
+                else:
+                    depth = ""
+
+                # Extract texture (color + soil type)
+                color_match = re.search(
+                    r"^([\w\s]+?)\s+(?:fine\s+)?(?:sandy\s+)?loam", seg, re.IGNORECASE
+                )
+                texture = color_match.group(1).strip() if color_match else seg.split()[0] if seg else ""
+
+                # Truncate texture to 1-2 words
+                texture_words = texture.split()[:2]
+                texture_short = " ".join(texture_words)
+
+                layers.append({
+                    "depth": depth,
+                    "texture": texture_short,
+                    "full": seg
+                })
+
+            # Extract pit-specific fields from layers
+            # Observation hole number: extract single digit if present
+            oh_match = re.search(r"observation\s+hole\s+(\d)", pit_text, re.IGNORECASE)
+            oh_num = oh_match.group(1) if oh_match else ""
+            result[f"{pit_prefix}observation_hole_number"] = oh_num
+
+            # Textures: first layer texture
+            if layers:
+                result[f"{pit_prefix}textures"] = layers[0].get("texture", "")[:20]  # Truncate to box width
+            else:
+                result[f"{pit_prefix}textures"] = ""
+
+            # Consistence: extract from first layer if present (abbreviate)
+            consistence = ""
+            if layers and "friable" in layers[0].get("full", "").lower():
+                consistence = "Fr"
+            elif layers and "firm" in layers[0].get("full", "").lower():
+                consistence = "Fm"
+            result[f"{pit_prefix}consistence"] = consistence
+
+            # Color: extract color from first layer
+            color = ""
+            if layers:
+                color_match = re.search(r"^(\w+)\s+(?:fine\s+)?", layers[0].get("full", ""), re.IGNORECASE)
+                if color_match:
+                    color = color_match.group(1)[:15]  # Truncate
+            result[f"{pit_prefix}color"] = color
+
+            # Redox features: check for gleying, mottling, etc.
+            redox = ""
+            for seg in segments:
+                if any(w in seg.lower() for w in ["gley", "mottle", "redox", "iron"]):
+                    redox = "Yes"
+                    break
+            result[f"{pit_prefix}redox_features"] = redox
+
+            # Profile: dominant soil type (last layer, 1-2 words)
+            dominant_soil = layers[-1].get("texture", "") if layers else ""
+            profile = " ".join(dominant_soil.split()[:2]) if dominant_soil else ""
+            result[f"{pit_prefix}profile"] = profile
+
+            # Condition: extract from pit text if present (abbreviate)
+            condition = ""
+            if "moist" in pit_text.lower():
+                condition = "Moist"
+            elif "dry" in pit_text.lower():
+                condition = "Dry"
+            result[f"{pit_prefix}condition"] = condition[:15]
+
+            # Slope: extract percentage if present
+            slope = ""
+            slope_m = re.search(r"(?:slope|slop)\s+(\d+)\s*%", pit_text, re.IGNORECASE)
+            if slope_m:
+                slope = slope_m.group(1)
+            result[f"{pit_prefix}slope"] = slope
+
+            # Limiting factor: extract limiting factor depth (single number only)
+            limiting_factor = ""
+            lim_m = re.search(r"limiting\s+factor.*?(\d+)\s*inches?", pit_text, re.IGNORECASE)
+            if lim_m:
+                limiting_factor = lim_m.group(1)[:1]  # Single digit only
+            result[f"{pit_prefix}limiting_factor"] = limiting_factor
+
+            # Groundwater: check for water depth
+            groundwater = ""
+            gw_m = re.search(r"(?:ground\s+?water|water\s+table).*?(\d+)\s*inches?", pit_text, re.IGNORECASE)
+            if gw_m:
+                groundwater = gw_m.group(1)
+            result[f"{pit_prefix}groundwater"] = groundwater
+
+            # Restrictive layer: check for restricting layer type
+            restrictive = ""
+            if any(w in pit_text.lower() for w in ["clay", "hardpan", "bedrock", "impervious"]):
+                restrictive = "Yes"
+            result[f"{pit_prefix}restrictive_layer"] = restrictive
+
+            # Bedrock: check for bedrock mention
+            bedrock = ""
+            bedrock_m = re.search(r"bedrock.*?(\d+)\s*inches?", pit_text, re.IGNORECASE)
+            if bedrock_m:
+                bedrock = bedrock_m.group(1)
+            result[f"{pit_prefix}bedrock"] = bedrock
+
+            # Pit depth: extract "pit depth of X inches" or final depth
+            pit_depth = ""
+            depth_m = re.search(r"pit depth\s+(?:of\s+)?(\d+)\s*inches?", pit_text, re.IGNORECASE)
+            if depth_m:
+                pit_depth = depth_m.group(1)
+            elif layers:
+                # Use last layer's depth
+                last_depth = layers[-1].get("depth", "")
+                if "-" in last_depth:
+                    pit_depth = last_depth.split("-")[1].split()[0]
+            result[f"{pit_prefix}pit_depth"] = pit_depth
         else:
-            depth_range = "unknown"
-        # Extract color + texture
-        color_match = re.search(
-            r"^([\w\s]+?)\s+(?:fine\s+)?sandy\s+loam", seg, re.IGNORECASE
-        )
-        soil_type = color_match.group(1).strip() if color_match else seg
-        layers.append({"depth": depth_range, "soil": soil_type})
+            # Pit not present, fill all with empty
+            for field in [
+                "observation_hole_number", "textures", "consistence", "color",
+                "redox_features", "profile", "condition", "slope", "limiting_factor",
+                "groundwater", "restrictive_layer", "bedrock", "pit_depth"
+            ]:
+                result[f"{pit_prefix}{field}"] = ""
 
-    # Dominant soil type (last layer = deepest)
-    dominant = layers[-1] if layers else {"soil": "Sandy Loam", "depth": "36 in"}
-    deepest_depth = layers[-1]["depth"] if layers else "36 in"
+    # Backward compatibility: also return old-style fields
+    pit1_profile = result.get("soil_pit1_profile", "")
+    pit1_depth = result.get("soil_pit1_pit_depth", "")
 
-    return {
-        "soil_type":         dominant["soil"],
-        "deepest_soil_depth": deepest_depth,
-        "soil_layers":       layers,   # list of dicts, kept for downstream use
-    }
+    result["soil_type"] = pit1_profile
+    result["deepest_soil_depth"] = f"{pit1_depth} in" if pit1_depth else ""
+    result["soil_layers"] = []  # Legacy; not used in Phase 2
+
+    return result
 
 
 def _reverse_name_format(full_name: str) -> str:
