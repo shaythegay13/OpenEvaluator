@@ -89,8 +89,9 @@ def merge_pdfs(pages_1_2: Path, page3_pdf: BytesIO, page4_pdf: BytesIO, output_p
     reader_1_2 = PdfReader(pages_1_2)
     writer = PdfWriter()
 
-    # Use append_pages_from_reader to preserve form structure better
-    writer.append_pages_from_reader(reader_1_2)
+    # Add only pages 1-2 from the filled PDF (which may have more pages)
+    for page_num in range(min(2, len(reader_1_2.pages))):
+        writer.add_page(reader_1_2.pages[page_num])
 
     # Manually copy AcroForm from source to writer
     # This must happen AFTER pages are added
