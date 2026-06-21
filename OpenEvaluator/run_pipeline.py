@@ -92,30 +92,31 @@ def run_pipeline(
     else:
         logger.warning("  No sketch URL in form")
 
-    # Step 5: Generate pages 3-4 with sketches
-    logger.info("Generating pages 3-4 with sketches...")
-    try:
-        from generate_hhe200_pages34_reportlab import generate_pages_3_4
-
-        page3_pdf = output_dir / f"HHE-200-{client_name}-page3.pdf"
-        page4_pdf = output_dir / f"HHE-200-{client_name}-page4.pdf"
-
-        success = generate_pages_3_4(
-            fields=fields,
-            sketch_path=sketch_path,
-            output_page3=page3_pdf,
-            output_page4=page4_pdf
-        )
-
-        if not success:
-            logger.error("Failed to generate pages 3-4")
-            return False
-
-        logger.info(f"  Page 3: {page3_pdf}")
-        logger.info(f"  Page 4: {page4_pdf}")
-    except Exception as e:
-        logger.error(f"Error generating pages 3-4: {e}", exc_info=True)
-        return False
+    # Step 5: Generate pages 3-4 with sketches [COMMENTED OUT]
+    # Using filled template from acro_fill.py instead, which preserves filled soil form fields
+    # logger.info("Generating pages 3-4 with sketches...")
+    # try:
+    #     from generate_hhe200_pages34_reportlab import generate_pages_3_4
+    #
+    #     page3_pdf = output_dir / f"HHE-200-{client_name}-page3.pdf"
+    #     page4_pdf = output_dir / f"HHE-200-{client_name}-page4.pdf"
+    #
+    #     success = generate_pages_3_4(
+    #         fields=fields,
+    #         sketch_path=sketch_path,
+    #         output_page3=page3_pdf,
+    #         output_page4=page4_pdf
+    #     )
+    #
+    #     if not success:
+    #         logger.error("Failed to generate pages 3-4")
+    #         return False
+    #
+    #     logger.info(f"  Page 3: {page3_pdf}")
+    #     logger.info(f"  Page 4: {page4_pdf}")
+    # except Exception as e:
+    #     logger.error(f"Error generating pages 3-4: {e}", exc_info=True)
+    #     return False
 
     # Step 6: Generate pages 1-2 with AcroForm
     logger.info("Generating pages 1-2 with AcroForm...")
@@ -134,22 +135,18 @@ def run_pipeline(
         logger.error(f"Error generating pages 1-2: {e}", exc_info=True)
         return False
 
-    # Step 7: Assemble into 4-page PDF
-    logger.info("Assembling 4-page PDF...")
+    # Step 7: Copy filled PDF as final output (already contains all 4 pages with filled soil form fields)
+    logger.info("Finalizing 4-page PDF...")
     try:
-        from assemble_hhe200 import merge_pdfs
-        from io import BytesIO
+        import shutil
 
         output_pdf = output_dir / f"HHE-200-{client_name}-{job_id}.pdf"
 
-        # Read PDFs as BytesIO objects
-        page3_io = BytesIO(page3_pdf.read_bytes())
-        page4_io = BytesIO(page4_pdf.read_bytes())
-
-        merge_pdfs(pages_1_2_pdf, page3_io, page4_io, output_pdf)
+        # Copy the filled PDF (contains pages 1-2 AcroForm + pages 3-4 template with soil form fields)
+        shutil.copy(pages_1_2_pdf, output_pdf)
         logger.info(f"  ✓ Final PDF: {output_pdf}")
     except Exception as e:
-        logger.error(f"Error assembling PDF: {e}", exc_info=True)
+        logger.error(f"Error finalizing PDF: {e}", exc_info=True)
         return False
 
     logger.info(f"✓ {client_name} pipeline complete")
