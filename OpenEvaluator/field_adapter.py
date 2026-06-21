@@ -861,39 +861,42 @@ def _map_soil_pit_fields(fields: Dict[str, str]) -> Dict[str, str]:
     Map Phase 2 soil pit fields (26 total) from sheet_parser to acro_fill WIDGET_MAP.
 
     Input: soil_pit1_observation_hole_number, soil_pit1_textures, etc.
-    Output: WIDGET_MAP-compatible keys like "Observation Hole_table1", "Textures_table1", etc.
+    Output: WIDGET_MAP-compatible keys (oh1_textures, oh2_color, etc.)
     """
     result: Dict[str, str] = {}
 
-    # Mapping for Pit 1 → table1 (Observation Hole 1)
+    # Mapping for Pit 1 → WIDGET_MAP oh1_* keys (Observation Hole 1)
     pit1_mapping = {
-        "soil_pit1_observation_hole_number": "Observation Hole_table1",
-        "soil_pit1_textures":                "Textures_table1",
-        "soil_pit1_consistence":             "Consistence_table1",
-        "soil_pit1_color":                   "Color_table1",
-        "soil_pit1_redox_features":          "Redox Features_table1",
-        "soil_pit1_profile":                 "Profile_table1",
-        "soil_pit1_condition":               "Condition_table1",
-        "soil_pit1_slope":                   "Slope_table1",
-        "soil_pit1_limiting_factor":         "Limiting Factor_table1",
-        "soil_pit1_restrictive_layer":       "Restrictive Layer_table1",
-        "soil_pit1_bedrock":                 "Bedrock_table1",
-        # soil_pit1_groundwater and soil_pit1_pit_depth are for display/cross-section only
+        "soil_pit1_observation_hole_number": "oh1_number",
+        "soil_pit1_textures":                "oh1_textures",
+        "soil_pit1_consistence":             "oh1_consistence",
+        "soil_pit1_color":                   "oh1_color",
+        "soil_pit1_redox_features":          "oh1_redox",
+        "soil_pit1_profile":                 "oh1_profile",
+        "soil_pit1_condition":               "oh1_condition",
+        "soil_pit1_slope":                   "oh1_slope",
+        "soil_pit1_limiting_factor":         "oh1_limiting_factor",
+        "soil_pit1_groundwater":             "oh1_groundwater_check",
+        "soil_pit1_restrictive_layer":       "oh1_restrictive_layer_check",
+        "soil_pit1_bedrock":                 "oh1_bedrock_check",
+        "soil_pit1_pit_depth":               "oh1_pit_depth_check",
     }
 
-    # Mapping for Pit 2 → table2 (Observation Hole 2)
+    # Mapping for Pit 2 → WIDGET_MAP oh2_* keys (Observation Hole 2)
     pit2_mapping = {
-        "soil_pit2_observation_hole_number": "Observation Hole_table2",
-        "soil_pit2_textures":                "Textures_table2",
-        "soil_pit2_consistence":             "Consistence_table2",
-        "soil_pit2_color":                   "Color_table2",
-        "soil_pit2_redox_features":          "Redox Features_table2",
-        "soil_pit2_profile":                 "Profile_table2",
-        "soil_pit2_condition":               "Condition_table2",
-        "soil_pit2_slope":                   "Slope_table2",
-        "soil_pit2_limiting_factor":         "Limiting Factor_table2",
-        "soil_pit2_restrictive_layer":       "Restrictive Layer_table2",
-        "soil_pit2_bedrock":                 "Bedrock_table2",
+        "soil_pit2_observation_hole_number": "oh2_number",
+        "soil_pit2_textures":                "oh2_textures",
+        "soil_pit2_consistence":             "oh2_consistence",
+        "soil_pit2_color":                   "oh2_color",
+        "soil_pit2_redox_features":          "oh2_redox",
+        "soil_pit2_profile":                 "oh2_profile",
+        "soil_pit2_condition":               "oh2_condition",
+        "soil_pit2_slope":                   "oh2_slope",
+        "soil_pit2_limiting_factor":         "oh2_limiting_factor",
+        "soil_pit2_groundwater":             "oh2_groundwater_check",
+        "soil_pit2_restrictive_layer":       "oh2_restrictive_layer_check",
+        "soil_pit2_bedrock":                 "oh2_bedrock_check",
+        "soil_pit2_pit_depth":               "oh2_pit_depth_check",
     }
 
     # Apply Pit 1 mapping
