@@ -16,6 +16,7 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
+from PyPDF2.generic import IndirectObject, NameObject
 import sys
 
 logging.basicConfig(
@@ -81,28 +82,37 @@ def composite_page3(placement_png: Path, soil_png: Path) -> Path:
     return output_path
 
 def merge_pdfs(pages_1_2: Path, page3_pdf: BytesIO, page4_pdf: BytesIO, output_path: Path) -> None:
-    """Merge all 4 pages into a single PDF."""
+    """Merge all 4 pages into a single PDF, preserving AcroForm fields."""
     logger.info(f"Merging 4 pages into {output_path.name}")
-    
+
+    # Start with pages 1-2 as the base (contains AcroForm)
+    reader_1_2 = PdfReader(pages_1_2)
     writer = PdfWriter()
-    
-    # Read pages 1-2
-    reader = PdfReader(pages_1_2)
-    for page_num in range(min(2, len(reader.pages))):
-        writer.add_page(reader.pages[page_num])
-    
+
+    # Use append_pages_from_reader to preserve form structure better
+    writer.append_pages_from_reader(reader_1_2)
+
+    # Manually copy AcroForm from source to writer
+    # This must happen AFTER pages are added
+    if "/AcroForm" in reader_1_2.trailer["/Root"]:
+        # Get the AcroForm from source
+        source_acroform = reader_1_2.trailer["/Root"]["/AcroForm"]
+
+        # Add it to the writer's root using NameObject for the key
+        writer._root_object[NameObject("/AcroForm")] = source_acroform
+
     # Add page 3 (rendered site plan)
     page3_reader = PdfReader(page3_pdf)
     writer.add_page(page3_reader.pages[0])
-    
+
     # Add page 4 (cross-section)
     page4_reader = PdfReader(page4_pdf)
     writer.add_page(page4_reader.pages[0])
-    
+
     # Write output
     with open(output_path, 'wb') as f:
         writer.write(f)
-    
+
     logger.info(f"✓ Final PDF: {output_path}")
 
 def main(client: str, job: str, work_dir: Path, output_dir: Path):
