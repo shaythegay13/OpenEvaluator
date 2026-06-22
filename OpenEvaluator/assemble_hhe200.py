@@ -170,9 +170,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Assemble HHE-200 PDF from components")
     parser.add_argument("--client", required=True, help="Client name (e.g., 'Marquis')")
     parser.add_argument("--job", required=True, help="Job number (e.g., '26-018')")
-    parser.add_argument("--work-dir", type=Path, default=Path("/home/workspace/OpenEvaluator"),
+    script_dir = Path(__file__).parent.resolve()
+    parser.add_argument("--work-dir", type=Path, default=script_dir,
                         help="Working directory with PNG renders")
-    parser.add_argument("--output-dir", type=Path, default=Path("/home/workspace/OpenEvaluator"),
+    parser.add_argument("--output-dir", type=Path, default=script_dir / "outputs",
                         help="Output directory for final PDF")
     
     args = parser.parse_args()

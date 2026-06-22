@@ -159,7 +159,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--client", required=True, help="Client name (Marquis or Roberts)")
     parser.add_argument("--job", required=True, help="Job ID (26-018 or 26-123)")
-    parser.add_argument("--output-dir", type=Path, default=Path.cwd(),
+    parser.add_argument("--output-dir", type=Path, default=SCRIPT_DIR / "outputs",
                         help="Output directory for PDFs")
 
     args = parser.parse_args()
